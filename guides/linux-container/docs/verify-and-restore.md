@@ -4,6 +4,8 @@ This is an operational reference for the already provisioned, matching device. T
 
 ## Before a session
 
+Resolve the [container, account and installation paths](paths-and-configuration.md) first. The Android `/data/local/tmp/psvr2/psvr2.sh` location below is the recovered host-script layout, not a personal home directory or proof that the script is installed on your phone.
+
 1. Match the host model/kernel and component digests in [the manifest](../manifest.json). Keep originals and private room/calibration state backed up.
 2. Resolve both custom Mesa ICDs and the Linux OpenXR runtime manifest to the intended libraries. Record the actual loaded driver/renderer during the eventual session; a configuration file alone is insufficient.
 3. Confirm physical USB and DisplayPort enumeration, the matching DSC configuration and input visibility. Keep another compositor from owning the headset output.

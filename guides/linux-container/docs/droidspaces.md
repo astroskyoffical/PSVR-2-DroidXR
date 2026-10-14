@@ -8,13 +8,9 @@ The recorded Android app is **6.3.0 / version code 6300**. The [v6.3.0 release](
 
 ## Installation evidence
 
-The existing container is named `AnLandKDE`, at:
+Select `${CONTAINER_NAME}` and `${CONTAINER_ROOTFS}` from your Droidspaces configuration. A container name is a local choice, and its storage location can vary. See [paths and configuration](paths-and-configuration.md); do not copy another installation's label or assume a rootfs path.
 
-```text
-/data/local/Droidspaces/Containers/AnLandKDE/rootfs
-```
-
-Its actual `/usr/lib/os-release` identifies **Ubuntu 26.04 LTS (Resolute Raccoon)**. `/etc/os-release` resolves to that file. Installed package records identify `arm64`; the phone kernel reports AArch64. The label `AnLandKDE` does not establish KDE, a distro, or an image origin.
+The recorded reference container's `/usr/lib/os-release` identifies **Ubuntu 26.04 LTS (Resolute Raccoon)**. `/etc/os-release` resolves to that file. Its installed package records identify `arm64`; the phone kernel reports AArch64. Inspect your selected container separately: a label does not establish its desktop environment, distribution or image origin.
 
 | Saved setting | Value |
 |---|---|
@@ -25,17 +21,17 @@ Its actual `/usr/lib/os-release` identifies **Ubuntu 26.04 LTS (Resolute Raccoon
 | Hardware access | enabled |
 | GPU mode | enabled |
 | SELinux permissive | disabled |
-| Custom init | `/root/desktop-doctor/bin/desktop-doctor-container-init.sh` |
-| Environment file | `/data/local/Droidspaces/Containers/AnLandKDE/desktop-doctor.env` |
+| Custom init | `${DESKTOP_INIT}` — configured container init helper |
+| Environment file | `${CONTAINER_ENV}` — configured host-side environment file |
 | Mesa loader override | `kgsl` |
 
-The preserved host launcher enters the container through:
+With your existing paths configured, the recovered wrapper interface can query status with:
 
 ```sh
-/data/local/Droidspaces/bin/droidspaces --name=AnLandKDE run /bin/bash /root/psvr2/psvr2-c.sh status
+"${DROIDSPACES_BIN}" --name="${CONTAINER_NAME}" run /bin/bash "${SESSION_SCRIPTS}/psvr2-c.sh" status
 ```
 
-This read-only status example uses the recovered wrapper syntax. The host launcher supplies `session`, `desktop`, `status` and other defined actions.
+Set each variable first. `DROIDSPACES_BIN` is an Android-host path; `SESSION_SCRIPTS` is a path inside the selected Linux container. This read-only status example uses the recovered wrapper syntax. The host launcher supplies `session`, `desktop`, `status` and other defined actions.
 
 **Fresh-install gap:** the original rootfs download/source, archive digest, exact image creation recipe and full package/source notices have not been recovered. Installing another Ubuntu image is not evidence that it reproduces this one. No rootfs is distributed here.
 

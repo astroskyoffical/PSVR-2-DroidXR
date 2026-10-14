@@ -5,7 +5,7 @@ This stage contains original documentation and component identity metadata. It d
 | Component | Available evidence | Required before distributing its payload |
 |---|---|---|
 | Production DSC module | Exact preserved binary digest/device/kernel | Matching production source, build configuration and notices; no experimental-source substitution |
-| Custom Mesa | Both deployed library digests and resolved ICDs | Exact source/patches/build mapping and all relevant SPDX/licenses |
+| Custom Mesa | Both deployed library digests and resolved ICDs | Artifact-specific permission and applicable licenses/notices, file identity, dependencies and embedded-path review; report source/build reproduction gaps separately |
 | Monado | Installed service/libraries/manifest digests; named source directory | Exact revision/patchset/build/dependencies and nested component notices |
 | LinkDoctor | Installed APK identity/signature; matching helper assets | Installed Java/source-build identity, explicit app license and dependency notices |
 | Launchers/broker/shims | Preserved script and broker-source digests | Rights/license declarations, exact build mapping and complete restore behavior |
@@ -18,8 +18,8 @@ Use [Droidspaces' versioned license](https://github.com/ravindu644/Droidspaces-O
 
 Obtain proprietary software from authorized sources, including the [Sony PC app](https://store.steampowered.com/app/2580190/PlayStationVR2_App/) and the user's own Steam library. No redistribution rights are inferred from possession of installed files. See the [Steam Subscriber Agreement](https://store.steampowered.com/subscriber_agreement/).
 
-The source directories named `monado-7b5894b` and `mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4` have no captured `.git/HEAD`. Their names are not verified commits. Read-only library retrieval was denied before any ELF was copied; no privileged transfer workaround was attempted. ELF dependency/build-ID evidence remains open.
+The source directories named `monado-7b5894b` and `mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4` have no captured `.git/HEAD`. Their names are not verified commits. The initial inventory captured runtime hashes; exact ELF dependency/build provenance remains under review. This preview does not include an ELF payload or claim that corresponding-source review is complete.
 
 Private evidence remains outside this package: raw device/package logs, APK/reference archives, proprietary binaries, room/calibration data, signing material and source-analysis records. The public [manifest](../manifest.json) contains selected identities and unresolved gates only.
 
-Publish these documentation files through the existing repository/website owner after review. Do not label them an installable full release, attach gated binaries, or claim that the release inventory repeated a live headset test. Closing the missing matching-source/build records is the next prerequisite for a complete reproducible package.
+This publication is a documentation preview. Preserve original device paths and raw engineering evidence privately; public paths use the [documented configuration variables](paths-and-configuration.md). Publish reviewed installation assets through the repository release process only after artifact-specific validation. Do not label them an installable full release, attach gated binaries, or claim that the release inventory repeated a live headset test. Closing the missing matching-source/build records is the next prerequisite for a complete reproducible package.

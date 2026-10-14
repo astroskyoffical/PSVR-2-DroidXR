@@ -6,13 +6,13 @@ Explore the [DroidXR engineering journal](https://astroskyoffical.github.io/PSVR
 
 This guide records the existing Linux PCVR route on a rooted RedMagic phone: Droidspaces hosts an ARM64 Linux container, custom Mesa renders on the phone GPU, and Monado presents to PSVR2 through a DRM lease. The Android screen stays with Android.
 
-**Release status: documentation and pinned component identities; a complete fresh-install bundle is not available.** The production DSC module lacks matching source, and the custom Mesa/Monado build provenance, rootfs image origin, and installed Android display app's source identity still need recovery. See [release gates](guides/linux-container/docs/licenses-and-provenance.md). Do not substitute an arbitrary kernel module or stock graphics driver.
+**Documentation preview — the runnable release is being assembled and tested.** The production DSC module lacks matching source, and the custom Mesa/Monado build provenance, rootfs image origin, and installed Android display app's source identity still need recovery. See [release gates](guides/linux-container/docs/licenses-and-provenance.md). Do not substitute an arbitrary kernel module or stock graphics driver.
 
 This route is separate from the native Android/Bionic OpenXR work. Windows drivers running through Wine in the container do not establish native Android completion.
 
 ![Linux app frames pass through Monado and custom Mesa to PSVR2. Android HWC lends selected display objects through a DRM lease while keeping the phone screen. USB input reaches the Linux driver bridge.](guides/linux-container/docs/flow.svg)
 
-**Downloads:** no custom app APK, DSC module, Mesa driver or Monado binary is included in this publication. The component pages identify the missing files and source/build records; official upstream links are references, not a tested replacement bundle.
+The next milestone is a tested, versioned install package with checksums and component-specific instructions. This preview records the recovered method and its remaining gaps; it does not yet include installable APK, module or runtime assets. Official upstream links credit the components and do not imply a tested replacement bundle.
 
 ## Recorded baseline
 
@@ -22,14 +22,16 @@ This route is separate from the native Android/Bionic OpenXR work. Windows drive
 | Kernel | `6.12.23-android16-OP-WILD` |
 | Container manager | [Droidspaces](https://github.com/ravindu644/Droidspaces-OSS), Android app 6.3.0 / code 6300 |
 | Container OS | Ubuntu 26.04 LTS, Resolute Raccoon; `arm64` package records |
-| Container label | `AnLandKDE` — a local name, not the distribution identity |
+| Container selection | `${CONTAINER_NAME}` from the Droidspaces configuration; the label does not identify its distribution |
 | Android display app | `com.anland.linkdoctor.next`, 1.0.0-preview / code 100 |
 | Graphics | Two custom Turnip libraries, separately selected for compositor and apps |
-| Runtime | Linux `/opt/psvr2/runtime/monado-ign`; exact hashes in the [manifest](guides/linux-container/manifest.json) |
+| Runtime | Linux `${XR_PREFIX}`; exact hashes in the [manifest](guides/linux-container/manifest.json) |
 
 These identities come from preserved files and a read-only inventory. The release review did not launch the container, create a lease, or repeat a headset test. Other phones, kernels, container managers and rootfs images remain untested by this method.
 
 ## Setup order
+
+First resolve the [paths and account configuration](guides/linux-container/docs/paths-and-configuration.md). The variables below describe your installation; they do not imply that the historical launchers already accept arbitrary paths.
 
 1. Read [device and DSC requirements](guides/linux-container/docs/device-and-dsc.md). Match the phone/kernel before considering a module.
 2. Follow the official [Droidspaces](https://www.droidspaces.org/) project, then match the [container settings](guides/linux-container/docs/droidspaces.md). The original rootfs image receipt is still missing.

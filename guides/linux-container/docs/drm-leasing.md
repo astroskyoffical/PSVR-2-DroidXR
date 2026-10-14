@@ -33,7 +33,7 @@ sequenceDiagram
 | Compositor consumer | Monado launched with `TU_KGSL_DISPLAY_FD=3`; custom Turnip uses that FD for `VK_KHR_display` |
 | Render access | Headless desktop/apps separately use KGSL/render-node access; the saved desktop selects `/dev/dri/renderD128` |
 
-The broker is a static AArch64 Linux/glibc program used on both sides. Running that host helper on Android does not make the container runtime Bionic-native. The source hardcodes `/dev/dri/card0` and the `AnLandKDE` rootfs path; those are baseline-specific assumptions.
+The broker is a static AArch64 Linux/glibc program used on both sides. Running that host helper on Android does not make the container runtime Bionic-native. The source hardcodes `/dev/dri/card0` and an operator-specific rootfs path. The public `${CONTAINER_ROOTFS}` convention describes the required configuration; it does not make the historical broker configurable. Its source must be adapted, rebuilt and tested before a different rootfs can be claimed to work. See [path configuration](paths-and-configuration.md).
 
 The broker clears mutable blob properties of leased planes before handing them out. It does not perform the CRTC modeset at that stage. The launcher then lets Monado/custom Mesa present. The saved configuration uses `WSI_DISPLAY_SPLIT=1`, with two 2000-pixel-wide planes for the 4000×2040 mode.
 

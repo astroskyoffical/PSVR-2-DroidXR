@@ -1,7 +1,7 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
   "as_of": "2026-10-14",
-  "release_status": "Documentation and identities only; complete fresh installation remains gated.",
+  "release_status": "Documentation preview; a tested, versioned runnable release is in preparation.",
   "basis": "Preserved baseline and owner-supplied read-only file/configuration inventory; no release-review live session.",
   "platform": {
     "phone": "NX809J / RedMagic",
@@ -13,10 +13,11 @@
     "container_version": "26.04 LTS",
     "container_codename": "Resolute Raccoon",
     "container_package_architecture": "arm64",
-    "container_label": "AnLandKDE",
     "rootfs_image_origin": null,
     "rootfs_image_sha256": null,
-    "rootfs_distribution_identity_is_not_image_provenance": true
+    "rootfs_distribution_identity_is_not_image_provenance": true,
+    "container_name": "${CONTAINER_NAME}",
+    "private_container_label_omitted": true
   },
   "droidspaces": {
     "official_source": "https://github.com/ravindu644/Droidspaces-OSS",
@@ -30,7 +31,6 @@
     "payload_included": false
   },
   "container_settings": {
-    "rootfs_path": "/data/local/Droidspaces/Containers/AnLandKDE/rootfs",
     "enable_android_storage": 0,
     "enable_termux_x11": 0,
     "enable_virgl": 0,
@@ -38,9 +38,10 @@
     "enable_hw_access": 1,
     "enable_gpu_mode": 1,
     "selinux_permissive": 0,
-    "custom_init": "/root/desktop-doctor/bin/desktop-doctor-container-init.sh",
-    "environment_file": "/data/local/Droidspaces/Containers/AnLandKDE/desktop-doctor.env",
-    "mesa_loader_driver_override": "kgsl"
+    "mesa_loader_driver_override": "kgsl",
+    "rootfs_path_template": "${CONTAINER_ROOTFS}",
+    "custom_init_path_template": "${DESKTOP_INIT}",
+    "environment_file_path_template": "${CONTAINER_ENV}"
   },
   "linkdoctor": {
     "package": "com.anland.linkdoctor.next",
@@ -80,56 +81,55 @@
     }
   },
   "monado": {
-    "install_prefix": "/opt/psvr2/runtime/monado-ign",
     "files": [
       {
-        "path": "/opt/psvr2/runtime/monado-ign/bin/monado-service",
+        "path_template": "${XR_PREFIX}/bin/monado-service",
         "sha256": "3ef24813359089b851d399f08c817fd3db33e9b11c670921a15d86041d476cb7",
         "bytes": null
       },
       {
-        "path": "/opt/psvr2/runtime/monado-ign/lib/libopenxr_monado.so",
+        "path_template": "${XR_PREFIX}/lib/libopenxr_monado.so",
         "sha256": "05dd1cc81f0437653f3ded4e6f2708fc04c78112809d53ac4216b8ca164cf9f3",
         "bytes": null
       },
       {
-        "path": "/opt/psvr2/runtime/monado-ign/lib/libmonado.so.25.1.0",
+        "path_template": "${XR_PREFIX}/lib/libmonado.so.25.1.0",
         "sha256": "fdb25e5ddb235ce21f4886ba869402200e2ae9534058227bda040fc646819c6b",
         "bytes": null
       },
       {
-        "path": "/opt/psvr2/runtime/monado-ign/share/openxr/1/openxr_monado.json",
+        "path_template": "${XR_PREFIX}/share/openxr/1/openxr_monado.json",
         "sha256": "a6fe164702281f786bcc9c3a4e1951d8fedade04bd56570ce503c6f62ebee538",
         "bytes": null
       }
     ],
-    "source_directory_observed": "/opt/psvr2/src/monado-7b5894b",
     "source_revision": null,
     "source_revision_status": "Named directory exists; .git/HEAD absent; output/source binding unverified.",
     "build_directory": {
-      "path": "/opt/psvr2/build/monado-7b5894b",
-      "presence": "unverified, recipe-derived"
+      "presence": "unverified, recipe-derived",
+      "directory_label": "monado-7b5894b"
     },
     "availability": {
       "payload_included": false,
       "download_available_from_this_package": false,
       "reason": "Exact modified source, patchset, build options, dependencies and notices not bound to deployed outputs."
-    }
+    },
+    "install_prefix_template": "${XR_PREFIX}",
+    "source_directory_label_observed": "monado-7b5894b"
   },
   "mesa": {
     "historical_custom_label": "26.2-devel / c4365a5a09; not a verified source commit",
-    "source_directory_observed": "/home/astrosky/vr-mods/turnip-gmemfix/mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4",
     "source_revision": null,
     "source_revision_status": "Named directory exists; .git/HEAD absent; output/source binding unverified.",
     "libraries": [
       {
-        "path": "/home/astrosky/vr-mods/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
+        "path_template": "${VR_FILES}/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
         "sha256": "13f03707c59a9577813b7531e86861272ef9654017141e6e927e146505d26f8e",
         "bytes": null,
         "active_process_mapping_verified": false
       },
       {
-        "path": "/home/astrosky/vr-mods/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
+        "path_template": "${VR_FILES}/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
         "sha256": "248cd58786c7a4bc0fef6242bf97c6ef984621caeada7af6f39b618e2ee4f5dc",
         "bytes": null,
         "active_process_mapping_verified": false
@@ -137,16 +137,14 @@
     ],
     "selected_icds": [
       {
-        "path": "/home/astrosky/vr-mods/turnip-gmemfix/icd/freedreno_icd.kms-priority-20261010.aarch64.json",
+        "path_template": "${VR_FILES}/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
         "sha256": "2dbb267eda382c0c7ffd63010f8a93827f1766a8610f4df81ee8b864d4a2aaff",
-        "library_path": "/home/astrosky/vr-mods/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
         "api_version_declared": "1.4.353",
         "library_arch_declared": "64"
       },
       {
-        "path": "/home/astrosky/vr-mods/turnip-kgsl-timeout-c4365a5/icd/freedreno_icd.kgsl-timeout.aarch64.json",
+        "path_template": "${VR_FILES}/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
         "sha256": null,
-        "library_path": "/home/astrosky/vr-mods/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
         "api_version_declared": "1.4.353",
         "library_arch_declared": "64"
       }
@@ -201,8 +199,9 @@
     "availability": {
       "payload_included": false,
       "download_available_from_this_package": false,
-      "reason": "Exact modified sources, build mapping and per-component notices unresolved."
-    }
+      "reason": "Artifact-specific license/notice, dependency and portable-path review is in progress. Source/build reproduction status is tracked separately."
+    },
+    "source_directory_template": "${VR_FILES}/turnip-gmemfix/mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4"
   },
   "recovered_scripts": [
     {
@@ -210,15 +209,15 @@
       "sha256": "9272b8a6a69147c1b1923b3284d60204150efa2e15a39baa5e3672aa245848a"
     },
     {
-      "path": "/root/psvr2/psvr2-c.sh",
+      "path_template": "${SESSION_SCRIPTS}/psvr2-c.sh",
       "sha256": "872929081a410138fc5c1d741da3e3832c135a9e967fc4cb2fa8454fc49cbea7"
     },
     {
-      "path": "/root/psvr2/psvr2-monado.sh",
+      "path_template": "${SESSION_SCRIPTS}/psvr2-monado.sh",
       "sha256": "dd3cbdb1506617e6b972bbd849e76d25dbffb98fe2f6c1b9d1d6beb636f7b5c1"
     },
     {
-      "path": "/root/psvr2/build-monado-ign.sh",
+      "path_template": "${SESSION_SCRIPTS}/build-monado-ign.sh",
       "sha256": "0e8c2bd4bef50e55bde83761fe72b2908f2be885b3dcffd8735144b3fe1e9106"
     }
   ],
@@ -247,7 +246,7 @@
     },
     "consumer": "Monado and custom Turnip VK_KHR_display",
     "stop": "Broker signal handler revokes lease and unlinks socket; host cleanup restores external logical display.",
-    "source_limits": "Hardcoded card0/rootfs; socket mode0666/no peer credentials; lessor retains authority.",
+    "source_limits": "Historical broker hardcodes card0 and an operator-specific rootfs; the public templates do not add configurable-path support. Socket mode0666/no peer credentials; lessor retains authority.",
     "availability": {
       "payload_included": false,
       "download_available_from_this_package": false,
@@ -315,7 +314,7 @@
   "remaining_evidence": [
     "Production DSC matching source, build configuration and notices.",
     "Custom Mesa and Monado exact modifications/build-to-output provenance and notice closure.",
-    "ELF architecture/dependency/build-ID evidence; first private retrieval denied, none copied.",
+    "Exact ELF architecture/dependency/build-ID and corresponding build/source evidence remains under review; no runtime payload included.",
     "Installed LinkDoctor matching Java/source-build identity and license.",
     "Rootfs image origin/digest/recipe and package-source notices.",
     "Exact deployed bridge, Wine/Proton, WayVR/shim and OpenComposite identities.",
@@ -331,5 +330,52 @@
     "private logs/configuration",
     "signing keys",
     "room maps/calibration data"
-  ]
+  ],
+  "path_representation": "Installation-specific paths are literal ${VARIABLE} documentation templates, not auto-expanded configuration or new launcher support. Original paths remain in private evidence. Hashes identify original artifacts.",
+  "path_variables": {
+    "CONTAINER_NAME": {
+      "context": "android_host",
+      "source": "Selected Droidspaces container configuration"
+    },
+    "CONTAINER_ROOTFS": {
+      "context": "android_host",
+      "source": "Actual rootfs location from selected manager configuration"
+    },
+    "DROIDSPACES_BIN": {
+      "context": "android_host",
+      "source": "Installed Droidspaces backend executable"
+    },
+    "CONTAINER_ENV": {
+      "context": "android_host",
+      "source": "Configured container environment file"
+    },
+    "DESKTOP_INIT": {
+      "context": "container",
+      "source": "Configured custom init helper"
+    },
+    "SESSION_SCRIPTS": {
+      "context": "container",
+      "source": "Installed container session helper directory"
+    },
+    "LINUX_HOME": {
+      "context": "container_desktop_account",
+      "source": "Home from selected Linux account/session; not Android HOME"
+    },
+    "VR_FILES": {
+      "context": "container",
+      "source": "Configured custom graphics/compatibility files directory"
+    },
+    "XR_PREFIX": {
+      "context": "container",
+      "source": "Selected Monado installation prefix"
+    },
+    "SERVICE_HOME": {
+      "context": "container_service_account",
+      "source": "Service account passwd entry; root in recorded recipe"
+    },
+    "XDG_RUNTIME_DIR": {
+      "context": "container_desktop_account",
+      "source": "Existing desktop session runtime directory; verify UID and ownership"
+    }
+  }
 }

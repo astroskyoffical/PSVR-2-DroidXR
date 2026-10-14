@@ -21,11 +21,11 @@ The recovered PSVR2 arrangement is:
 | Location | Role |
 |---|---|
 | `/data/local/tmp/psvr2/psvr2.sh` | Android-root host entry point |
-| `/root/psvr2/psvr2-c.sh` | Container nodes, headless desktop, apps and user environment |
-| `/root/psvr2/psvr2-monado.sh` | Compositor ICD, runtime/driver environment and lease client |
+| `${SESSION_SCRIPTS}/psvr2-c.sh` | Container nodes, headless desktop, apps and user environment |
+| `${SESSION_SCRIPTS}/psvr2-monado.sh` | Compositor ICD, runtime/driver environment and lease client |
 | `psvr2-lease` | Static AArch64 Linux broker/client used on host and in container |
 
-Exact preserved script hashes are in [the manifest](../manifest.json). Host and container copies of similarly named build/helpers can differ; do not substitute one based on its filename.
+Resolve `${SESSION_SCRIPTS}` using the installed container configuration; see [paths and accounts](paths-and-configuration.md). This is not a claimed new environment option in the historical scripts. Exact preserved script hashes are in [the manifest](../manifest.json). Host and container copies of similarly named build/helpers can differ; do not substitute one based on its filename.
 
 The existing `on` sequence cleans up its previous processes, starts Droidspaces if necessary, copies its fixed scripts into the container, starts a headless Linux desktop, disables the selected Android external logical display, starts the host lease broker, launches Monado through the lease client, then starts WayVR. A private saved play area is reapplied. See [DRM leasing](drm-leasing.md) for the display authority path.
 
