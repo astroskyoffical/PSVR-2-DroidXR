@@ -1,0 +1,7 @@
+# Copyright (C) 2026 AstroPC (astroskyoffical)
+# SPDX-License-Identifier: GPL-3.0-only
+# Preserve published source-package hashes across platform checkouts.
+research/dxvk-gaze/* -text
+# Unified diff context contains significant whitespace; retain the reviewed bytes.
+research/dxvk-gaze/*.patch -whitespace
+research/dxvk-gaze/*.zip binary

@@ -1,0 +1,1022 @@
+diff --git a/src/dxvk/dxvk_cmdlist.h b/src/dxvk/dxvk_cmdlist.h
+index 6950a04..ee2ba56 100644
+--- a/src/dxvk/dxvk_cmdlist.h
++++ b/src/dxvk/dxvk_cmdlist.h
+@@ -1032,6 +1032,14 @@ namespace dxvk {
+     }
+ 
+ 
++    void cmdSetFragmentShadingRate(
++      const VkExtent2D*             pFragmentSize,
++      const VkFragmentShadingRateCombinerOpKHR combinerOps[2]) {
++      m_vkd->vkCmdSetFragmentShadingRateKHR(getCmdBuffer(),
++        pFragmentSize, combinerOps);
++    }
++
++
+     void cmdSetDepthBias(
+             float                   depthBiasConstantFactor,
+             float                   depthBiasClamp,
+diff --git a/src/dxvk/dxvk_context.cpp b/src/dxvk/dxvk_context.cpp
+index 187e1ae..c7a6db4 100644
+--- a/src/dxvk/dxvk_context.cpp
++++ b/src/dxvk/dxvk_context.cpp
+@@ -7,6 +7,7 @@
+ 
+ #include "dxvk_device.h"
+ #include "dxvk_context.h"
++#include "dxvk_foveation.h"
+ 
+ namespace dxvk {
+   
+@@ -5780,6 +5781,34 @@ namespace dxvk {
+       renderingInheritance.stencilAttachmentFormat = depthStencilFormat;
+     }
+ 
++    // Opt-in fixed foveated rendering: attach a static shading rate map to
++    // render passes whose framebuffer matches the configured eye target size.
++    m_foveationActive = false;
++
++    if (unlikely(m_device->canUseFoveation()) && colorInfoCount && fbSize.layers == 1u) {
++      const FoveationMap* map = getFoveationMap(framebufferInfo);
++
++      if (map) {
++        auto& shadingRateInfo = m_state.om.renderingInfo.shadingRate;
++        shadingRateInfo = { VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR };
++        shadingRateInfo.imageView = map->view->handle();
++        shadingRateInfo.imageLayout = map->view->getLayout();
++        shadingRateInfo.shadingRateAttachmentTexelSize = map->texelSize;
++        shadingRateInfo.pNext = std::exchange(renderingInfo.pNext, &shadingRateInfo);
++
++        m_cmd->track(map->image, DxvkAccess::Read);
++        m_foveationActive = true;
++        m_foveationDebugMap = uint32_t(map - m_foveationMaps.data());
++
++        for (uint32_t i = 0; i < colorInfoCount; i++) {
++          if (m_state.om.renderingInfo.color[i].imageView) {
++            m_foveationDebugAttachment = i;
++            break;
++          }
++        }
++      }
++    }
++
+     // Reset render area tracking, will be adjusted when drawing with viewports.
+     m_state.om.renderAreaLo = VkOffset2D { int32_t(fbSize.width), int32_t(fbSize.height) };
+     m_state.om.renderAreaHi = VkOffset2D { 0, 0 };
+@@ -5811,6 +5840,27 @@ namespace dxvk {
+       m_cmd->cmdBeginRendering(DxvkCmdBuffer::ExecBuffer, &renderingInfo);
+     }
+ 
++    // With DXVK_FOVEATION_LOG=1, log each distinct render pass configuration
++    // once so that the eye render target size can be identified in-game.
++    if (unlikely(m_device->canUseFoveation() && DxvkFoveationConfig::get().log)) {
++      uint64_t key = uint64_t(fbSize.width) | (uint64_t(fbSize.height) << 16)
++        | (uint64_t(colorInfoCount) << 32) | (uint64_t(depthStencilAspects ? 1u : 0u) << 36)
++        | (uint64_t(renderingInheritance.rasterizationSamples) << 37)
++        | (uint64_t(m_foveationActive ? 1u : 0u) << 45)
++        | (uint64_t(useSecondaryCmdBuffer ? 1u : 0u) << 46);
++
++      if (m_foveationSeen.size() < 256u
++       && std::find(m_foveationSeen.begin(), m_foveationSeen.end(), key) == m_foveationSeen.end()) {
++        m_foveationSeen.push_back(key);
++
++        Logger::info(str::format("Foveation: render pass ", fbSize.width, "x", fbSize.height,
++          " layers ", fbSize.layers, " colors ", colorInfoCount, " depth ", depthStencilAspects ? 1 : 0,
++          " samples ", uint32_t(renderingInheritance.rasterizationSamples),
++          " secondary ", useSecondaryCmdBuffer ? 1 : 0,
++          " -> foveated ", m_foveationActive ? 1 : 0));
++      }
++    }
++
+     if (lateClearCount) {
+       VkClearRect clearRect = { };
+       clearRect.rect.extent.width   = fbSize.width;
+@@ -5838,7 +5888,221 @@ namespace dxvk {
+   }
+   
+   
++  const DxvkContext::FoveationMap* DxvkContext::getFoveationMap(
++    const DxvkFramebufferInfo&  framebufferInfo) {
++    const auto& config = DxvkFoveationConfig::get();
++    const auto& props = m_device->properties().khrFragmentShadingRate;
++
++    DxvkFramebufferSize fbSize = framebufferInfo.size();
++
++    if (!config.matches(fbSize.width, fbSize.height))
++      return nullptr;
++
++    if (config.requireDepth && !framebufferInfo.getDepthTarget().view)
++      return nullptr;
++
++    for (uint32_t i = 0; i < framebufferInfo.numAttachments(); i++) {
++      VkSampleCountFlagBits samples = framebufferInfo.getAttachment(i).view->image()->info().sampleCount;
++
++      if (uint32_t(samples) > uint32_t(props.maxFragmentShadingRateRasterizationSamples))
++        return nullptr;
++    }
++
++    for (auto& map : m_foveationMaps) {
++      if (map.fbExtent.width == fbSize.width && map.fbExtent.height == fbSize.height) {
++        if (map.image == nullptr)
++          return nullptr;
++        updateFoveationGaze(map);
++        return &map;
++      }
++    }
++
++    FoveationMap map = { };
++    map.fbExtent = VkExtent2D { fbSize.width, fbSize.height };
++    map.texelSize = props.minFragmentShadingRateAttachmentTexelSize;
++
++    if (!map.texelSize.width || !map.texelSize.height) {
++      // Remember the failure so that we don't retry every render pass
++      m_foveationMaps.push_back(map);
++      return nullptr;
++    }
++
++    VkExtent2D mapExtent = {
++      (fbSize.width  + map.texelSize.width  - 1u) / map.texelSize.width,
++      (fbSize.height + map.texelSize.height - 1u) / map.texelSize.height };
++
++    map.mapExtent = mapExtent;
++
++    std::vector<uint8_t> data = buildFoveationMap(map.fbExtent,
++      map.texelSize, mapExtent, props.maxFragmentSize);
++
++    DxvkImageCreateInfo imageInfo;
++    imageInfo.type = VK_IMAGE_TYPE_2D;
++    imageInfo.format = VK_FORMAT_R8_UINT;
++    imageInfo.sampleCount = VK_SAMPLE_COUNT_1_BIT;
++    imageInfo.extent = VkExtent3D { mapExtent.width, mapExtent.height, 1u };
++    imageInfo.numLayers = 1u;
++    imageInfo.mipLevels = 1u;
++    imageInfo.usage = VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR
++                    | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
++    imageInfo.stages = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
++    imageInfo.access = VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;
++    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
++    imageInfo.layout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
++    imageInfo.debugName = "Foveation map";
++
++    map.image = m_device->createImage(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
++
++    uploadFoveationMap(map, data);
++
++    DxvkImageViewKey viewKey;
++    viewKey.viewType = VK_IMAGE_VIEW_TYPE_2D;
++    viewKey.usage = VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
++    viewKey.format = VK_FORMAT_R8_UINT;
++    viewKey.layout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
++    viewKey.aspects = VK_IMAGE_ASPECT_COLOR_BIT;
++    viewKey.mipIndex = 0u;
++    viewKey.mipCount = 1u;
++    viewKey.layerIndex = 0u;
++    viewKey.layerCount = 1u;
++
++    map.view = map.image->createView(viewKey);
++
++    // Histogram by fragment area (1, 2, 4, 8, 16 px) and debug dot rects.
++    // Dots are 4x4 px every 16 px, sampled from the map at the dot origin.
++    std::array<uint32_t, 5> histogram = { };
++
++    for (uint8_t v : data)
++      histogram[((v >> 2) & 3u) + (v & 3u)] += 1u;
++
++    if (config.debug) {
++      for (uint32_t y = 6u; y + 4u <= fbSize.height; y += 16u) {
++        for (uint32_t x = 6u; x + 4u <= fbSize.width; x += 16u) {
++          uint8_t v = data[size_t(y / map.texelSize.height) * mapExtent.width + (x / map.texelSize.width)];
++
++          VkClearRect rect = { };
++          rect.rect.offset = VkOffset2D { int32_t(x), int32_t(y) };
++          rect.rect.extent = VkExtent2D { 4u, 4u };
++          rect.layerCount = 1u;
++
++          map.debugRects[((v >> 2) & 3u) + (v & 3u)].push_back(rect);
++        }
++      }
++    }
++
++    Logger::info(str::format("Foveation: shading rate map for ", fbSize.width, "x", fbSize.height,
++      " target: ", mapExtent.width, "x", mapExtent.height, " texels of ",
++      map.texelSize.width, "x", map.texelSize.height, " px; texels with 1/2/4/8/16 px fragments ",
++      histogram[0], "/", histogram[1], "/", histogram[2], "/", histogram[3], "/", histogram[4]));
++
++    m_foveationMaps.push_back(std::move(map));
++    return &m_foveationMaps.back();
++  }
++
++
++  void DxvkContext::uploadFoveationMap(
++          FoveationMap&               map,
++    const std::vector<uint8_t>&       data) {
++    DxvkBufferCreateInfo bufferInfo;
++    bufferInfo.size = align<VkDeviceSize>(data.size(), CACHE_LINE_SIZE);
++    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
++    bufferInfo.stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
++    bufferInfo.access = VK_ACCESS_TRANSFER_READ_BIT;
++    bufferInfo.debugName = "Foveation map upload";
++
++    Rc<DxvkBuffer> staging = m_device->createBuffer(bufferInfo,
++      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
++    std::memcpy(staging->mapPtr(0), data.data(), data.size());
++
++    // Records into the init / transfer command buffers only, so this
++    // is safe to do while setting up the render pass.
++    uploadImage(map.image, staging, 0u, CACHE_LINE_SIZE, VK_FORMAT_R8_UINT);
++  }
++
++
++  void DxvkContext::updateFoveationGaze(FoveationMap& map) {
++    const volatile DxvkFoveationGaze* gaze = foveationGaze();
++
++    const float ringScale = foveationScale();
++    const bool scaleChanged = std::abs(ringScale - map.ringScale) >= 0.01f;
++
++    if (!gaze || (gaze->seq == map.gazeSeq && !scaleChanged))
++      return;
++
++    const auto& c = DxvkFoveationConfig::get();
++    float uv[4] = { c.centerX, c.centerY, 1.0f - c.centerX, c.centerY };  // lens centres without gaze
++
++    if (gaze->valid)
++      uv[0] = gaze->u[0], uv[1] = gaze->v[0], uv[2] = gaze->u[1], uv[3] = gaze->v[1];
++
++    if (gaze->seq != map.gazeSeq)
++      map.gazeSeq = gaze->seq;
++
++    // Skip sub-texel jitter and limit rebuilds to one per 8 ms.
++    float moved = 0.0f;
++
++    for (uint32_t i = 0; i < 4u; i++)
++      moved = std::max(moved, std::abs(uv[i] - map.gazeUV[i]));
++
++    uint64_t now = GetTickCount64();
++
++    if ((moved < 0.01f && !scaleChanged) || now - map.gazeTick < 8u)
++      return;
++
++    std::copy(uv, uv + 4u, map.gazeUV);
++    map.gazeTick = now;
++    map.ringScale = ringScale;
++
++    std::vector<uint8_t> data = buildFoveationMap(map.fbExtent, map.texelSize,
++      map.mapExtent, m_device->properties().khrFragmentShadingRate.maxFragmentSize, uv, ringScale);
++    uploadFoveationMap(map, data);
++  }
++
++
++  void DxvkContext::updateFoveationState() {
++    VkExtent2D fragmentSize = { 1u, 1u };
++
++    // Use the attachment rate only inside foveated render passes; otherwise
++    // keep the 1x1 pipeline rate, which is equivalent to no VRS at all.
++    std::array<VkFragmentShadingRateCombinerOpKHR, 2> combinerOps = {
++      VK_FRAGMENT_SHADING_RATE_COMBINER_OP_KEEP_KHR,
++      m_foveationActive
++        ? VK_FRAGMENT_SHADING_RATE_COMBINER_OP_REPLACE_KHR
++        : VK_FRAGMENT_SHADING_RATE_COMBINER_OP_KEEP_KHR };
++
++    m_cmd->cmdSetFragmentShadingRate(&fragmentSize, combinerOps.data());
++
++  }
++
++
+   void DxvkContext::renderPassUnbindFramebuffer() {
++    // DXVK_FOVEATION_DEBUG=1: stamp dots coloured by the map rate into the
++    // first colour attachment before the foveated render pass ends.
++    if (unlikely(m_foveationActive && DxvkFoveationConfig::get().debug)) {
++      static const std::array<VkClearColorValue, 5> s_colors = {{
++        {{ 0.0f, 1.0f, 0.0f, 1.0f }},   // 1x1 green
++        {{ 0.0f, 1.0f, 1.0f, 1.0f }},   // 2 px cyan
++        {{ 1.0f, 1.0f, 0.0f, 1.0f }},   // 4 px yellow
++        {{ 1.0f, 0.5f, 0.0f, 1.0f }},   // 8 px orange
++        {{ 1.0f, 0.0f, 0.0f, 1.0f }},   // 16 px red
++      }};
++
++      const auto& map = m_foveationMaps[m_foveationDebugMap];
++
++      for (uint32_t i = 0; i < s_colors.size(); i++) {
++        if (map.debugRects[i].empty())
++          continue;
++
++        VkClearAttachment clear = { };
++        clear.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
++        clear.colorAttachment = m_foveationDebugAttachment;
++        clear.clearValue.color = s_colors[i];
++
++        m_cmd->cmdClearAttachments(DxvkCmdBuffer::ExecBuffer, 1, &clear,
++          uint32_t(map.debugRects[i].size()), map.debugRects[i].data());
++      }
++    }
++
+     if (m_flags.test(DxvkContextFlag::GpRenderPassSecondaryCmd)) {
+       m_flags.clr(DxvkContextFlag::GpRenderPassSecondaryCmd);
+       VkCommandBuffer cmdBuffer = m_cmd->endSecondaryCommandBuffer();
+@@ -6097,6 +6361,10 @@ namespace dxvk {
+     m_cmd->cmdBindPipeline(DxvkCmdBuffer::ExecBuffer,
+       VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineInfo.handle);
+ 
++    // Fragment shading rate is dynamic on all pipelines if foveation is on
++    if (unlikely(m_device->canUseFoveation()))
++      updateFoveationState();
++
+     // Update attachment usage info based on the pipeline state
+     m_state.om.attachmentMask.merge(pipelineInfo.attachments);
+ 
+diff --git a/src/dxvk/dxvk_context.h b/src/dxvk/dxvk_context.h
+index c613765..ff3a64d 100644
+--- a/src/dxvk/dxvk_context.h
++++ b/src/dxvk/dxvk_context.h
+@@ -1343,6 +1343,29 @@ namespace dxvk {
+     Rc<DxvkCommandList>     m_cmd;
+     Rc<DxvkBuffer>          m_zeroBuffer;
+ 
++    struct FoveationMap {
++      VkExtent2D              fbExtent = { };
++      VkExtent2D              texelSize = { };
++      Rc<DxvkImage>           image;
++      Rc<DxvkImageView>       view;
++      std::array<std::vector<VkClearRect>, 5> debugRects;
++      VkExtent2D              mapExtent = { };
++      uint32_t                gazeSeq = 0u;
++      float                   gazeUV[4] = { -1.0f, -1.0f, -1.0f, -1.0f };
++      uint64_t                gazeTick = 0u;
++      float                   ringScale = 1.0f;
++    };
++
++    void updateFoveationGaze(FoveationMap& map);
++
++    void uploadFoveationMap(FoveationMap& map, const std::vector<uint8_t>& data);
++
++    std::vector<FoveationMap> m_foveationMaps;
++    bool                    m_foveationActive = false;
++    uint32_t                m_foveationDebugMap = 0u;
++    uint32_t                m_foveationDebugAttachment = 0u;
++    std::vector<uint64_t>   m_foveationSeen;
++
+     Rc<DxvkBuffer>          m_scratchBuffer;
+     VkDeviceSize            m_scratchOffset = 0u;
+ 
+@@ -1667,6 +1690,11 @@ namespace dxvk {
+     void renderPassBindFramebuffer(
+       const DxvkFramebufferInfo&  framebufferInfo,
+             DxvkRenderPassOps&    ops);
++
++    const FoveationMap* getFoveationMap(
++      const DxvkFramebufferInfo&  framebufferInfo);
++
++    void updateFoveationState();
+     
+     void renderPassUnbindFramebuffer();
+     
+diff --git a/src/dxvk/dxvk_device.h b/src/dxvk/dxvk_device.h
+index 80d01b4..808a2e4 100644
+--- a/src/dxvk/dxvk_device.h
++++ b/src/dxvk/dxvk_device.h
+@@ -292,6 +292,18 @@ namespace dxvk {
+      */
+     bool canUseSampleLocations(VkSampleCountFlags samples) const;
+ 
++    /**
++     * rief Checks whether opt-in foveated rendering is active
++     *
++     * Only true if DXVK_FOVEATION=1 is set and the device supports
++     * pipeline and attachment fragment shading rates.
++     * eturns \c true if foveation can be used
++     */
++    bool canUseFoveation() const {
++      return m_features.khrFragmentShadingRate.pipelineFragmentShadingRate
++          && m_features.khrFragmentShadingRate.attachmentFragmentShadingRate;
++    }
++
+     /**
+      * \brief Checks whether pipelines should be tracked
+      * \returns \c true if pipelines need to be tracked
+diff --git a/src/dxvk/dxvk_device_info.cpp b/src/dxvk/dxvk_device_info.cpp
+index c45e62b..64b7348 100644
+--- a/src/dxvk/dxvk_device_info.cpp
++++ b/src/dxvk/dxvk_device_info.cpp
+@@ -5,6 +5,7 @@
+ #include <type_traits>
+ 
+ #include "dxvk_device_info.h"
++#include "dxvk_foveation.h"
+ #include "dxvk_instance.h"
+ #include "dxvk_limits.h"
+ 
+@@ -45,6 +46,7 @@ namespace dxvk {
+     HANDLE_EXT(extVertexAttributeDivisor);         \
+     HANDLE_EXT(khrExternalMemoryWin32);            \
+     HANDLE_EXT(khrExternalSemaphoreWin32);         \
++    HANDLE_EXT(khrFragmentShadingRate);            \
+     HANDLE_EXT(khrLoadStoreOpNone);                \
+     HANDLE_EXT(khrMaintenance5);                   \
+     HANDLE_EXT(khrMaintenance6);                   \
+@@ -80,6 +82,7 @@ namespace dxvk {
+     HANDLE_EXT(extSampleLocations);                \
+     HANDLE_EXT(extTransformFeedback);              \
+     HANDLE_EXT(extVertexAttributeDivisor);         \
++    HANDLE_EXT(khrFragmentShadingRate);            \
+     HANDLE_EXT(khrMaintenance5);                   \
+     HANDLE_EXT(khrMaintenance6);                   \
+     HANDLE_EXT(khrMaintenance7);
+@@ -519,6 +522,22 @@ namespace dxvk {
+     if (m_properties.vk12.driverID == VK_DRIVER_ID_QUALCOMM_PROPRIETARY)
+       m_featuresSupported.extMultiDraw.multiDraw = VK_FALSE;
+ 
++    // Fragment shading rate is only used for the opt-in foveation hack
++    // (DXVK_FOVEATION=1). Never enable it otherwise so that the default
++    // behaviour is identical to an unpatched build.
++    if (!DxvkFoveationConfig::get().enabled) {
++      m_featuresSupported.khrFragmentShadingRate.pipelineFragmentShadingRate = VK_FALSE;
++      m_featuresSupported.khrFragmentShadingRate.primitiveFragmentShadingRate = VK_FALSE;
++      m_featuresSupported.khrFragmentShadingRate.attachmentFragmentShadingRate = VK_FALSE;
++    }
++
++    // Foveation needs both pipeline (for the dynamic combiner state) and
++    // attachment rates; never use primitive rates.
++    if (!m_featuresSupported.khrFragmentShadingRate.attachmentFragmentShadingRate)
++      m_featuresSupported.khrFragmentShadingRate.pipelineFragmentShadingRate = VK_FALSE;
++
++    m_featuresSupported.khrFragmentShadingRate.primitiveFragmentShadingRate = VK_FALSE;
++
+     // If we're running off a device without a sparse binding queue,
+     // disable all the sparse binding features as well
+     uint32_t sparseQueue = findQueueFamily(VK_QUEUE_SPARSE_BINDING_BIT, VK_QUEUE_SPARSE_BINDING_BIT);
+@@ -955,6 +974,10 @@ namespace dxvk {
+       ENABLE_EXT(khrExternalMemoryWin32, false),
+       ENABLE_EXT(khrExternalSemaphoreWin32, false),
+ 
++      /* Fragment shading rate, only used for opt-in foveated rendering */
++      ENABLE_EXT_FEATURE(khrFragmentShadingRate, pipelineFragmentShadingRate, false),
++      ENABLE_EXT_FEATURE(khrFragmentShadingRate, attachmentFragmentShadingRate, false),
++
+       /* LOAD_OP_NONE for certain tiler optimizations */
+       ENABLE_EXT(khrLoadStoreOpNone, false),
+ 
+diff --git a/src/dxvk/dxvk_device_info.h b/src/dxvk/dxvk_device_info.h
+index 32cb90f..62f4163 100644
+--- a/src/dxvk/dxvk_device_info.h
++++ b/src/dxvk/dxvk_device_info.h
+@@ -38,6 +38,7 @@ namespace dxvk {
+     VkPhysicalDeviceSampleLocationsPropertiesEXT              extSampleLocations              = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT };
+     VkPhysicalDeviceTransformFeedbackPropertiesEXT            extTransformFeedback            = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT };
+     VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT       extVertexAttributeDivisor       = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT };
++    VkPhysicalDeviceFragmentShadingRatePropertiesKHR          khrFragmentShadingRate          = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR };
+     VkPhysicalDeviceMaintenance5PropertiesKHR                 khrMaintenance5                 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR };
+     VkPhysicalDeviceMaintenance6PropertiesKHR                 khrMaintenance6                 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_PROPERTIES_KHR };
+     VkPhysicalDeviceMaintenance7PropertiesKHR                 khrMaintenance7                 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_PROPERTIES_KHR };
+@@ -85,6 +86,7 @@ namespace dxvk {
+     VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT         extVertexAttributeDivisor       = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES };
+     VkBool32                                                  khrExternalMemoryWin32          = VK_FALSE;
+     VkBool32                                                  khrExternalSemaphoreWin32       = VK_FALSE;
++    VkPhysicalDeviceFragmentShadingRateFeaturesKHR            khrFragmentShadingRate          = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR };
+     VkBool32                                                  khrLoadStoreOpNone              = VK_FALSE;
+     VkPhysicalDeviceMaintenance5FeaturesKHR                   khrMaintenance5                 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR };
+     VkPhysicalDeviceMaintenance6FeaturesKHR                   khrMaintenance6                 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_FEATURES_KHR };
+@@ -151,6 +153,7 @@ namespace dxvk {
+     VkExtensionProperties extVertexAttributeDivisor         = vk::makeExtension(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME);
+     VkExtensionProperties khrExternalMemoryWin32            = vk::makeExtension(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+     VkExtensionProperties khrExternalSemaphoreWin32         = vk::makeExtension(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
++    VkExtensionProperties khrFragmentShadingRate            = vk::makeExtension(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
+     VkExtensionProperties khrLoadStoreOpNone                = vk::makeExtension(VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME);
+     VkExtensionProperties khrMaintenance5                   = vk::makeExtension(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
+     VkExtensionProperties khrMaintenance6                   = vk::makeExtension(VK_KHR_MAINTENANCE_6_EXTENSION_NAME);
+diff --git a/src/dxvk/dxvk_foveation.h b/src/dxvk/dxvk_foveation.h
+new file mode 100644
+index 0000000..33f7480
+--- /dev/null
++++ b/src/dxvk/dxvk_foveation.h
+@@ -0,0 +1,395 @@
++#pragma once
++
++#include <algorithm>
++#include <cmath>
++#include <cstdio>
++#include <cstdlib>
++#include <string>
++#include <vector>
++
++#include "dxvk_include.h"
++
++#include "../util/util_env.h"
++
++#include <windows.h>
++
++namespace dxvk {
++
++  /**
++   * \brief Opt-in fixed foveated rendering (prototype)
++   *
++   * Configured exclusively through environment variables, default OFF:
++   *
++   *   DXVK_FOVEATION=1                 enable
++   *   DXVK_FOVEATION_TARGET=WxH[,WxH]  render target sizes to foveate (required)
++   *   DXVK_FOVEATION_EYES=auto|1|2     2 = side-by-side stereo target, auto
++   *                                    picks 2 if width >= 1.5 * height
++   *   DXVK_FOVEATION_CENTER=x,y        projection centre of the LEFT eye in
++   *                                    normalized eye coordinates (default
++   *                                    0.5,0.5); right eye mirrors x
++   *   DXVK_FOVEATION_RINGS=r:WxH,...   any number of rings, e.g.
++   *                                    0.5:1x1,0.62:1x2,0.72:2x2,0.85:2x4,1.0:4x4
++   *                                    (r normalized, 1.0 = eye half width/
++   *                                    height). A texel uses the first ring
++   *                                    with d < r, else the last ring's rate.
++   *                                    Non-square rates are coarser along the
++   *                                    radial direction (DXVK_FOVEATION_ORIENT=0
++   *                                    disables that).
++   *   DXVK_FOVEATION_RADII=r1,r2       legacy 3-ring form used if RINGS is unset
++   *   DXVK_FOVEATION_RATES=AxB,CxD     (default 0.45,0.75 and 2x2,4x4)
++   *   DXVK_FOVEATION_INVERT_Y=1        mirror the eye centre vertically
++   *   DXVK_FOVEATION_EYE_SWAP=1        mirror the eye centres horizontally
++   *   DXVK_FOVEATION_SWAP_XY=1         transpose the non-square rate encoding
++   *   DXVK_FOVEATION_DEBUG=1           draw 4x4 px dots every 16 px in foveated
++   *                                    passes, coloured by map rate: green 1x1,
++   *                                    cyan 2 px, yellow 4 px, orange 8 px,
++   *                                    red 16 px per fragment
++   *   DXVK_FOVEATION_REQUIRE_DEPTH=0|1 only foveate passes that also bind a
++   *                                    depth attachment (default 1)
++   *   DXVK_FOVEATION_LOG=1             log each distinct render pass
++   *                                    configuration once (size, attachments,
++   *                                    foveated or not) to find the eye target
++   */
++  struct DxvkFoveationRing {
++    float      radius;
++    VkExtent2D rate;
++  };
++
++  struct DxvkFoveationConfig {
++    bool enabled = false;
++    bool requireDepth = true;
++    bool log = false;
++    bool orient = true;
++    bool invertY = false;
++    bool eyeSwap = false;
++    bool swapXY = false;
++    bool debug = false;
++    int  eyes = 0;
++    float centerX = 0.5f;
++    float centerY = 0.5f;
++    std::string gazePath;
++    std::string scalePath;
++    std::vector<DxvkFoveationRing> rings;
++    std::vector<VkExtent2D> targets;
++
++    bool matches(uint32_t w, uint32_t h) const {
++      for (const auto& t : targets) {
++        if (t.width == w && t.height == h)
++          return true;
++      }
++
++      return false;
++    }
++
++    static const DxvkFoveationConfig& get() {
++      static const DxvkFoveationConfig s_config = parse();
++      return s_config;
++    }
++
++  private:
++
++    static bool parseRate(const std::string& s, VkExtent2D* rate) {
++      unsigned a = 0, b = 0;
++
++      if (std::sscanf(s.c_str(), "%ux%u", &a, &b) != 2)
++        return false;
++
++      auto valid = [] (unsigned v) { return v == 1u || v == 2u || v == 4u; };
++
++      if (!valid(a) || !valid(b))
++        return false;
++
++      *rate = VkExtent2D { a, b };
++      return true;
++    }
++
++    static std::vector<std::string> split(const std::string& s, char c) {
++      std::vector<std::string> result;
++      size_t pos = 0;
++
++      while (pos < s.size()) {
++        size_t end = s.find(c, pos);
++        if (end == std::string::npos)
++          end = s.size();
++        result.push_back(s.substr(pos, end - pos));
++        pos = end + 1;
++      }
++
++      return result;
++    }
++
++    static DxvkFoveationConfig parse() {
++      DxvkFoveationConfig c;
++
++      if (env::getEnvVar("DXVK_FOVEATION") != "1")
++        return c;
++
++      for (const auto& t : split(env::getEnvVar("DXVK_FOVEATION_TARGET"), ',')) {
++        unsigned w = 0, h = 0;
++
++        if (std::sscanf(t.c_str(), "%ux%u", &w, &h) == 2 && w && h)
++          c.targets.push_back(VkExtent2D { w, h });
++      }
++
++      if (c.targets.empty()) {
++        Logger::warn("DXVK_FOVEATION=1 but DXVK_FOVEATION_TARGET=WxH is not set, foveation disabled");
++        return c;
++      }
++
++      c.gazePath = env::getEnvVar("DXVK_FOVEATION_GAZE");
++      c.scalePath = env::getEnvVar("DXVK_FOVEATION_SCALE");
++
++      std::string eyes = env::getEnvVar("DXVK_FOVEATION_EYES");
++      c.eyes = (eyes == "1") ? 1 : (eyes == "2") ? 2 : 0;
++
++      float x = 0.0f, y = 0.0f;
++
++      if (std::sscanf(env::getEnvVar("DXVK_FOVEATION_CENTER").c_str(), "%f,%f", &x, &y) == 2
++       && x >= 0.0f && x <= 1.0f && y >= 0.0f && y <= 1.0f) {
++        c.centerX = x;
++        c.centerY = y;
++      }
++
++      for (const auto& r : split(env::getEnvVar("DXVK_FOVEATION_RINGS"), ',')) {
++        size_t colon = r.find(':');
++        DxvkFoveationRing ring = { };
++
++        if (colon != std::string::npos && parseRate(r.substr(colon + 1), &ring.rate)) {
++          ring.radius = float(std::atof(r.substr(0, colon).c_str()));
++          c.rings.push_back(ring);
++        } else {
++          Logger::warn(str::format("Foveation: ignoring ring '", r, "'"));
++        }
++      }
++
++      if (c.rings.empty()) {
++        // Legacy three-ring configuration
++        float r1 = 0.45f, r2 = 0.75f;
++        VkExtent2D mid = { 2u, 2u }, outer = { 4u, 4u };
++
++        if (std::sscanf(env::getEnvVar("DXVK_FOVEATION_RADII").c_str(), "%f,%f", &x, &y) == 2
++         && x > 0.0f && y >= x) {
++          r1 = x;
++          r2 = y;
++        }
++
++        auto rates = split(env::getEnvVar("DXVK_FOVEATION_RATES"), ',');
++
++        if (rates.size() == 2u) {
++          parseRate(rates[0], &mid);
++          parseRate(rates[1], &outer);
++        }
++
++        c.rings = { { r1, { 1u, 1u } }, { r2, mid }, { 1e9f, outer } };
++      }
++
++      std::stable_sort(c.rings.begin(), c.rings.end(),
++        [] (const DxvkFoveationRing& a, const DxvkFoveationRing& b) { return a.radius < b.radius; });
++
++      c.orient = env::getEnvVar("DXVK_FOVEATION_ORIENT") != "0";
++      c.invertY = env::getEnvVar("DXVK_FOVEATION_INVERT_Y") == "1";
++      c.eyeSwap = env::getEnvVar("DXVK_FOVEATION_EYE_SWAP") == "1";
++      c.swapXY = env::getEnvVar("DXVK_FOVEATION_SWAP_XY") == "1";
++      c.debug = env::getEnvVar("DXVK_FOVEATION_DEBUG") == "1";
++      c.requireDepth = env::getEnvVar("DXVK_FOVEATION_REQUIRE_DEPTH") != "0";
++      c.log = env::getEnvVar("DXVK_FOVEATION_LOG") == "1";
++      c.enabled = true;
++
++      std::string list, rings;
++
++      for (const auto& t : c.targets)
++        list += str::format(list.empty() ? "" : ",", t.width, "x", t.height);
++
++      for (const auto& r : c.rings)
++        rings += str::format(rings.empty() ? "" : ",", r.radius, ":", r.rate.width, "x", r.rate.height);
++
++      Logger::info(str::format("Foveation: enabled, targets ", list,
++        ", eyes ", c.eyes ? std::to_string(c.eyes) : std::string("auto"),
++        ", center ", c.centerX, ",", c.centerY, ", rings ", rings,
++        ", orient ", c.orient ? 1 : 0, ", invertY ", c.invertY ? 1 : 0,
++        ", eyeSwap ", c.eyeSwap ? 1 : 0, ", swapXY ", c.swapXY ? 1 : 0,
++        ", debug ", c.debug ? 1 : 0, ", requireDepth ", c.requireDepth ? 1 : 0));
++      return c;
++    }
++
++  };
++
++
++  inline uint32_t foveationLog2(uint32_t v) {
++    return v >= 4u ? 2u : v >= 2u ? 1u : 0u;
++  }
++
++
++  /**
++   * \brief Builds the R8_UINT shading rate map for a render target
++   *
++   * Texel value per VK_KHR_fragment_shading_rate is
++   * (log2(width) << 2) | log2(height).
++   * \param [in] fbExtent Framebuffer size in pixels
++   * \param [in] texel Shading rate attachment texel size
++   * \param [in] mapExtent Size of the map, in texels
++   * \param [in] maxFragment Largest fragment size supported by the device
++   */
++  /**
++   * rief Live gaze for eye-tracked foveation
++   *
++   * DXVK_FOVEATION_GAZE names a file written by the VR runtime (Monado writes
++   * /dev/shm/psvr2-gaze, opened here as Z:\dev\shm\psvr2-gaze):
++   * { uint32 seq, uint32 valid, float u[2], float v[2] }, per eye u right, v down.
++   */
++  struct DxvkFoveationGaze {
++    uint32_t seq;
++    uint32_t valid;
++    float    u[2];
++    float    v[2];
++  };
++
++  inline const volatile DxvkFoveationGaze* foveationGaze() {
++    static const volatile DxvkFoveationGaze* s_gaze = nullptr;
++    static uint64_t s_nextTry = 0u;
++
++    const auto& c = DxvkFoveationConfig::get();
++
++    if (s_gaze || c.gazePath.empty() || GetTickCount64() < s_nextTry)
++      return s_gaze;
++
++    s_nextTry = GetTickCount64() + 1000u;  // the runtime creates the file on first gaze sample
++
++    HANDLE file = CreateFileA(c.gazePath.c_str(), GENERIC_READ,
++      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, 0, nullptr);
++
++    if (file == INVALID_HANDLE_VALUE)
++      return nullptr;
++
++    HANDLE mapping = CreateFileMappingA(file, nullptr, PAGE_READONLY, 0, 0, nullptr);
++    CloseHandle(file);
++
++    if (!mapping)
++      return nullptr;
++
++    s_gaze = reinterpret_cast<const volatile DxvkFoveationGaze*>(
++      MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, sizeof(DxvkFoveationGaze)));
++    CloseHandle(mapping);
++
++    if (s_gaze)
++      Logger::info(str::format("Foveation: eye tracking from ", c.gazePath));
++
++    return s_gaze;
++  }
++
++  /**
++   * \brief Dynamic ring scale (DXVK_FOVEATION_SCALE)
++   *
++   * The runtime's foveation controller (Monado PSVR2 SR, frame-time PID + head motion) writes
++   * { uint32 seq, float scale } to /dev/shm/psvr2-fovea; every ring radius is multiplied by it.
++   * 1.0 when unset or not written yet.
++   */
++  struct DxvkFoveationScale {
++    uint32_t seq;
++    float    scale;
++  };
++
++  inline float foveationScale() {
++    static const volatile DxvkFoveationScale* s_scale = nullptr;
++    static uint64_t s_nextTry = 0u;
++    const auto& c = DxvkFoveationConfig::get();
++
++    if (!s_scale && !c.scalePath.empty() && GetTickCount64() >= s_nextTry) {
++      s_nextTry = GetTickCount64() + 1000u;
++      HANDLE file = CreateFileA(c.scalePath.c_str(), GENERIC_READ,
++        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, 0, nullptr);
++
++      if (file != INVALID_HANDLE_VALUE) {
++        HANDLE mapping = CreateFileMappingA(file, nullptr, PAGE_READONLY, 0, 0, nullptr);
++        CloseHandle(file);
++
++        if (mapping) {
++          s_scale = reinterpret_cast<const volatile DxvkFoveationScale*>(
++            MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, sizeof(DxvkFoveationScale)));
++          CloseHandle(mapping);
++        }
++      }
++    }
++
++    float s = s_scale && s_scale->seq ? s_scale->scale : 1.0f;
++    return (s >= 0.5f && s <= 1.5f) ? s : 1.0f;
++  }
++
++  inline std::vector<uint8_t> buildFoveationMap(
++          VkExtent2D            fbExtent,
++          VkExtent2D            texel,
++          VkExtent2D            mapExtent,
++          VkExtent2D            maxFragment,
++    const float*                gazeUV = nullptr,
++          float                 ringScale = 1.0f) {
++    const auto& c = DxvkFoveationConfig::get();
++
++    uint32_t eyes = c.eyes ? uint32_t(c.eyes)
++      : (fbExtent.width * 2u >= fbExtent.height * 3u ? 2u : 1u);
++
++    float eyeW = float(fbExtent.width) / float(eyes);
++    float eyeH = float(fbExtent.height);
++
++    std::vector<uint8_t> data(size_t(mapExtent.width) * mapExtent.height, 0u);
++
++    for (uint32_t y = 0; y < mapExtent.height; y++) {
++      for (uint32_t x = 0; x < mapExtent.width; x++) {
++        // Use the texel point closest to the eye centre so that a texel
++        // only gets a coarser rate if all of its pixels are outside a ring.
++        float x0 = float(x * texel.width);
++        float x1 = float(std::min((x + 1u) * texel.width, fbExtent.width));
++        float y0 = float(y * texel.height);
++        float y1 = float(std::min((y + 1u) * texel.height, fbExtent.height));
++
++        uint32_t eye = std::min(uint32_t(((x0 + x1) * 0.5f) / eyeW), eyes - 1u);
++        bool mirror = (eye == 1u) != c.eyeSwap;
++
++        float cx = (mirror ? 1.0f - c.centerX : c.centerX) * eyeW + float(eye) * eyeW;
++        float cy = (c.invertY ? 1.0f - c.centerY : c.centerY) * eyeH;
++
++        if (gazeUV) {  // eye-tracked: gaze point of this eye in its own image (u right, v down)
++          cx = std::clamp(gazeUV[eye * 2u], 0.0f, 1.0f) * eyeW + float(eye) * eyeW;
++          cy = std::clamp(gazeUV[eye * 2u + 1u], 0.0f, 1.0f) * eyeH;
++          if (c.invertY)
++            cy = eyeH - cy;
++        }
++
++        float px = std::clamp(cx, x0, x1);
++        float py = std::clamp(cy, y0, y1);
++
++        float dx = (px - cx) / (0.5f * eyeW);
++        float dy = (py - cy) / (0.5f * eyeH);
++        float d  = std::sqrt(dx * dx + dy * dy);
++
++        VkExtent2D rate = c.rings.back().rate;
++
++        for (const auto& r : c.rings) {
++          if (d < r.radius * ringScale) {
++            rate = r.rate;
++            break;
++          }
++        }
++
++        // Non-square rates: coarser along the radial direction
++        if (c.orient && rate.width != rate.height) {
++          float ox = std::abs((x0 + x1) * 0.5f - cx) / eyeW;
++          float oy = std::abs((y0 + y1) * 0.5f - cy) / eyeH;
++          uint32_t lo = std::min(rate.width, rate.height);
++          uint32_t hi = std::max(rate.width, rate.height);
++          rate = ox >= oy ? VkExtent2D { hi, lo } : VkExtent2D { lo, hi };
++        }
++
++        uint32_t w = foveationLog2(std::min(rate.width,  std::max(maxFragment.width,  1u)));
++        uint32_t h = foveationLog2(std::min(rate.height, std::max(maxFragment.height, 1u)));
++
++        if (c.swapXY)
++          std::swap(w, h);
++
++        data[size_t(y) * mapExtent.width + x] = uint8_t((w << 2) | h);
++      }
++    }
++
++    return data;
++  }
++
++}
+diff --git a/src/dxvk/dxvk_framebuffer.h b/src/dxvk/dxvk_framebuffer.h
+index 1333fb7..d7a020f 100644
+--- a/src/dxvk/dxvk_framebuffer.h
++++ b/src/dxvk/dxvk_framebuffer.h
+@@ -75,6 +75,7 @@ namespace dxvk {
+     VkAttachmentFeedbackLoopInfoEXT depthStencilFeedbackLoop = { };
+     VkRenderingAttachmentInfo depth = { };
+     VkRenderingAttachmentInfo stencil = { };
++    VkRenderingFragmentShadingRateAttachmentInfoKHR shadingRate = { };
+     VkRenderingInfo rendering = { };
+   };
+ 
+diff --git a/src/dxvk/dxvk_graphics.cpp b/src/dxvk/dxvk_graphics.cpp
+index a3ee414..99b051d 100644
+--- a/src/dxvk/dxvk_graphics.cpp
++++ b/src/dxvk/dxvk_graphics.cpp
+@@ -802,6 +802,9 @@ namespace dxvk {
+       dyStates[dyInfo.dynamicStateCount++] = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT;
+     }
+ 
++    if (device->canUseFoveation())
++      dyStates[dyInfo.dynamicStateCount++] = VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR;
++
+     if (dyInfo.dynamicStateCount)
+       dyInfo.pDynamicStates = dyStates.data();
+   }
+@@ -1360,6 +1363,9 @@ namespace dxvk {
+     VkPipelineCreateFlags2CreateInfo flags = { VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO };
+     flags.flags = vs.linkFlags | fs.linkFlags;
+ 
++    if (m_device->canUseFoveation())
++      flags.flags |= VK_PIPELINE_CREATE_2_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
++
+     if (m_device->canUseDescriptorHeap())
+       flags.flags |= VK_PIPELINE_CREATE_2_DESCRIPTOR_HEAP_BIT_EXT;
+ 
+@@ -1456,6 +1462,9 @@ namespace dxvk {
+     if (m_device->canUseDescriptorBuffer())
+       flags.flags |= VK_PIPELINE_CREATE_2_DESCRIPTOR_BUFFER_BIT_EXT;
+ 
++    if (m_device->canUseFoveation())
++      flags.flags |= VK_PIPELINE_CREATE_2_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
++
+     VkGraphicsPipelineCreateInfo info = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, &key.foState.rtInfo };
+     info.stageCount               = stageInfo.getStageCount();
+     info.pStages                  = stageInfo.getStageInfos();
+diff --git a/src/dxvk/dxvk_graphics.h b/src/dxvk/dxvk_graphics.h
+index 41c606c..c49cc56 100644
+--- a/src/dxvk/dxvk_graphics.h
++++ b/src/dxvk/dxvk_graphics.h
+@@ -222,7 +222,7 @@ namespace dxvk {
+             DxvkGraphicsPipelineFlags       flags);
+ 
+     VkPipelineDynamicStateCreateInfo  dyInfo    = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+-    std::array<VkDynamicState, 20>    dyStates  = { };
++    std::array<VkDynamicState, 21>    dyStates  = { };
+ 
+     bool eq(const DxvkGraphicsPipelineDynamicState& other) const;
+ 
+diff --git a/src/dxvk/dxvk_image.cpp b/src/dxvk/dxvk_image.cpp
+index b0d1f05..a0c1db5 100644
+--- a/src/dxvk/dxvk_image.cpp
++++ b/src/dxvk/dxvk_image.cpp
+@@ -716,7 +716,8 @@ namespace dxvk {
+       VK_IMAGE_USAGE_SAMPLED_BIT |
+       VK_IMAGE_USAGE_STORAGE_BIT |
+       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
++      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
++      VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+ 
+     // Legalize view usage. We allow creating transfer-only view
+     // objects so that some internal APIs can be more consistent.
+diff --git a/src/dxvk/dxvk_memory.cpp b/src/dxvk/dxvk_memory.cpp
+index fdd5146..ef847c8 100644
+--- a/src/dxvk/dxvk_memory.cpp
++++ b/src/dxvk/dxvk_memory.cpp
+@@ -201,7 +201,7 @@ namespace dxvk {
+     auto& descriptor = m_views.emplace(std::piecewise_construct,
+       std::tuple(key), std::tuple()).first->second;
+ 
+-    VkImageUsageFlags renderTargetUsage = key.usage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
++    VkImageUsageFlags renderTargetUsage = key.usage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR);
+     VkImageUsageFlags shaderResourceUsage = key.usage & (VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+ 
+     VkImageViewUsageCreateInfo usage = { VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO };
+diff --git a/src/dxvk/dxvk_shader.cpp b/src/dxvk/dxvk_shader.cpp
+index eb1e364..21e0320 100644
+--- a/src/dxvk/dxvk_shader.cpp
++++ b/src/dxvk/dxvk_shader.cpp
+@@ -371,6 +371,9 @@ namespace dxvk {
+     if (m_device->features().extExtendedDynamicState3.extendedDynamicState3DepthClipEnable)
+       dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT);
+ 
++    if (m_device->canUseFoveation())
++      dynamicStates.push_back(VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR);
++
+     VkPipelineDynamicStateCreateInfo dyInfo = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+     dyInfo.dynamicStateCount  = dynamicStates.size();
+     dyInfo.pDynamicStates     = dynamicStates.data();
+@@ -483,6 +486,9 @@ namespace dxvk {
+       dynamicStates.push_back(VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT);
+     }
+ 
++    if (m_device->canUseFoveation())
++      dynamicStates.push_back(VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR);
++
+     VkPipelineDynamicStateCreateInfo dyInfo = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+     dyInfo.dynamicStateCount  = dynamicStates.size();
+     dyInfo.pDynamicStates     = dynamicStates.data();
+@@ -517,6 +523,9 @@ namespace dxvk {
+     if (m_device->canUseDescriptorBuffer())
+       flagsInfo.flags |= VK_PIPELINE_CREATE_2_DESCRIPTOR_BUFFER_BIT_EXT;
+ 
++    if (m_device->canUseFoveation())
++      flagsInfo.flags |= VK_PIPELINE_CREATE_2_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
++
+     VkGraphicsPipelineLibraryCreateInfoEXT libInfo = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT, &flagsInfo };
+     libInfo.flags             = VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT;
+ 
+diff --git a/src/vulkan/vulkan_loader.h b/src/vulkan/vulkan_loader.h
+index 7d02632..988fb75 100644
+--- a/src/vulkan/vulkan_loader.h
++++ b/src/vulkan/vulkan_loader.h
+@@ -484,6 +484,10 @@ namespace dxvk::vk {
+     VULKAN_FN(vkImportSemaphoreWin32HandleKHR);
+     #endif
+ 
++    #ifdef VK_KHR_fragment_shading_rate
++    VULKAN_FN(vkCmdSetFragmentShadingRateKHR);
++    #endif
++
+     #ifdef VK_KHR_maintenance5
+     VULKAN_FN(vkCmdBindIndexBuffer2KHR);
+     VULKAN_FN(vkGetRenderingAreaGranularityKHR);

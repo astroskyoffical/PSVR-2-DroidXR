@@ -51,6 +51,10 @@ The audit matched all 15 altered source files to SHA-256 records embedded in ret
 
 These are identity records. This note does not distribute those binaries or any Sony/game payload.
 
+## Source patches and reproduction
+
+The [readable source package](../research/dxvk-gaze/README.md) provides the two recovered patches, exact upstream base, dependency/toolchain records, settings examples, rollback instructions and portable provenance metadata. A third patch is optional new trace instrumentation, not part of the phone-tested build. The [source-only ZIP](../research/dxvk-gaze/psvr2-dxvk-gaze-source-20261014-r1.zip?raw=true) contains those text files and scoped notices. It contains no DLL, Sony/game asset or private log, and is not a complete runtime installer.
+
 ## The remaining runtime and GPU-work checks
 
 The user's successful phone testing and observed SGSR2 improvement are part of the evidence. The remaining runtime capture is a matching session that correlates valid changing gaze, selected-pass binding and changing map payloads queued for upload. The old debug dots are generated when a map is first created and are not rebuilt as gaze moves; they cannot establish tracked map movement.

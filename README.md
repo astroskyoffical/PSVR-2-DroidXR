@@ -11,6 +11,8 @@ The journal also shows a separate [Meta Quest streaming experiment](https://astr
 
 The [foveated-rendering notes](guides/foveated-rendering.md) explain the recovered gaze-enabled DXVK path and separate it from SGSR2 compositor upscaling. The recovered source/build binding now matches both saved phone-session DLLs and all 15 altered compiler inputs. AstroPC confirms phone foveation success and improved image quality with SGSR2. A retained pass-level gaze trace and a controlled GPU-work comparison remain separate checks.
 
+The [recovered DXVK source patches and reproduction instructions](research/dxvk-gaze/README.md) are available as readable files and a source-only ZIP, with the upstream notice and exact original-project license scope.
+
 ## Acknowledgment: iVRy's PSVR2 research
 
 Without iVRy's research and shared findings, I would not have understood the PSVR2's DSC requirements or got this part working. His PSVR2 reverse-engineering and shared Display Stream Compression findings helped make this project's display work possible. See [iVRy's official PSVR2 project](https://store.steampowered.com/app/1021000/BETA_iVRy_Driver_for_SteamVR_PSVR2_Premium_Edition/), developed by iVRy / Mediator Software.

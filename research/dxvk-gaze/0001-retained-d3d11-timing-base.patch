@@ -1,0 +1,106 @@
+diff --git a/src/d3d11/d3d11_interop.cpp b/src/d3d11/d3d11_interop.cpp
+index 04fef38..312e2e8 100644
+--- a/src/d3d11/d3d11_interop.cpp
++++ b/src/d3d11/d3d11_interop.cpp
+@@ -5,8 +5,55 @@
+ #include "../dxvk/dxvk_adapter.h"
+ #include "../dxvk/dxvk_device.h"
+ #include "../dxvk/dxvk_instance.h"
++#include "../util/util_env.h"
++#include "../util/log/log.h"
++#include <chrono>
++#include <mutex>
+ 
+ namespace dxvk {
++  namespace {
++    using InteropClock = std::chrono::steady_clock;
++    const bool interopTiming = env::getEnvVar("DXVK_INTEROP_TIMING") == "1";
++    struct InteropPending {
++      bool flushed = false;
++      double flush = 0, cs = 0, lock = 0;
++    };
++    thread_local InteropPending interopPending;
++    double interopMs(InteropClock::time_point start, InteropClock::time_point end) {
++      return std::chrono::duration<double, std::milli>(end - start).count();
++    }
++    void reportInteropTiming() {
++      static std::mutex mutex;
++      static auto last = InteropClock::now();
++      static uint64_t flushCount = 0, lockCount = 0;
++      static double flushSum = 0, csSum = 0, lockSum = 0;
++      static double flushMax = 0, csMax = 0, lockMax = 0;
++      std::lock_guard<std::mutex> guard(mutex);
++      auto now = InteropClock::now();
++      ++lockCount;
++      lockSum += interopPending.lock;
++      lockMax = std::max(lockMax, interopPending.lock);
++      if (interopPending.flushed) {
++        ++flushCount;
++        flushSum += interopPending.flush;
++        csSum += interopPending.cs;
++        flushMax = std::max(flushMax, interopPending.flush);
++        csMax = std::max(csMax, interopPending.cs);
++      }
++      interopPending = {};
++      if (now - last < std::chrono::seconds(1))
++        return;
++      Logger::info(str::format("INTEROP-TIMING ns=",
++        std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count(),
++        " window_ms=", interopMs(last, now), " flush_n=", flushCount, " lock_n=", lockCount,
++        " flush_mean/max_ms=", flushCount ? flushSum / flushCount : 0, "/", flushMax,
++        " cs_mean/max_ms=", flushCount ? csSum / flushCount : 0, "/", csMax,
++        " queue_lock_mean/max_ms=", lockSum / lockCount, "/", lockMax));
++      last = now;
++      flushCount = lockCount = 0;
++      flushSum = csSum = lockSum = flushMax = csMax = lockMax = 0;
++    }
++  }
+   
+   D3D11VkInterop::D3D11VkInterop(
+           IDXGIObject*          pContainer,
+@@ -84,18 +131,38 @@ namespace dxvk {
+   
+   void STDMETHODCALLTYPE D3D11VkInterop::FlushRenderingCommands() {
+     auto immediateContext = m_device->GetContext();
++    if (interopTiming) {
++      auto start = InteropClock::now();
++      immediateContext->Flush();
++      auto flushed = InteropClock::now();
++      immediateContext->SynchronizeCsThread(DxvkCsThread::SynchronizeAll);
++      auto synced = InteropClock::now();
++      interopPending.flushed = true;
++      interopPending.flush = interopMs(start, flushed);
++      interopPending.cs = interopMs(flushed, synced);
++      return;
++    }
+     immediateContext->Flush();
+     immediateContext->SynchronizeCsThread(DxvkCsThread::SynchronizeAll);
+   }
+   
+   
+   void STDMETHODCALLTYPE D3D11VkInterop::LockSubmissionQueue() {
++    if (interopTiming) {
++      auto start = InteropClock::now();
++      m_device->GetDXVKDevice()->lockSubmission();
++      interopPending.lock = interopMs(start, InteropClock::now());
++      return;
++    }
+     m_device->GetDXVKDevice()->lockSubmission();
+   }
+   
+   
+   void STDMETHODCALLTYPE D3D11VkInterop::ReleaseSubmissionQueue() {
+     m_device->GetDXVKDevice()->unlockSubmission();
++    // Report only after the Vulkan queue is unlocked; preserve all ordering.
++    if (interopTiming)
++      reportInteropTiming();
+   }
+   
+   
+@@ -157,4 +224,4 @@ namespace dxvk {
+       return E_INVALIDARG;
+     }
+   }
+-}
+\ No newline at end of file
++}

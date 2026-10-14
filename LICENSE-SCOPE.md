@@ -9,6 +9,12 @@ AstroPC (astroskyoffical) offers **GNU General Public License version 3 only**, 
 
 | File | Covered original software |
 |---|---|
+| `.gitattributes` | Original repository rules preserving published source-package bytes |
+| `research/dxvk-gaze/0001-retained-d3d11-timing-base.patch` | Original project-authored alterations only; unchanged DXVK context retains its zlib/libpng terms |
+| `research/dxvk-gaze/0002-recovered-dxvk-gaze-foveation.patch` | Original project-authored alterations only; unchanged DXVK context retains its zlib/libpng terms |
+| `research/dxvk-gaze/0003-OPTIONAL-new-gaze-map-trace.patch` | Original project-authored alterations only; unchanged DXVK context retains its zlib/libpng terms |
+| `research/dxvk-gaze/skyrim-foveation.env.example` | Original configuration-template text only; upstream names and recorded identity metadata are excluded |
+| `research/dxvk-gaze/monado-sr.env.example` | Original configuration-template text only; upstream names and recorded identity metadata are excluded |
 | `.github/workflows/pages.yml` | Original site build and deployment workflow; referenced Actions retain their own licenses |
 | `docs/app.mjs` | Original site interactions, sound coordination and visual effects |
 | `docs/visual-data.mjs` | Original cue normalization and timing helpers |
@@ -22,6 +28,8 @@ The grant also covers the original project-authored portions of these documentat
 - `LICENSE-SCOPE.md`
 - `NOTICE`
 - `guides/foveated-rendering.md`
+- `research/dxvk-gaze/README.md`
+- `research/dxvk-gaze/PACKAGE-TERMS.md`
 - `guides/linux-container/docs/device-and-dsc.md`
 - `guides/linux-container/docs/drm-leasing.md`
 - `guides/linux-container/docs/droidspaces.md`

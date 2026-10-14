@@ -1,0 +1,34 @@
+--- a/src/dxvk/dxvk_context.cpp
++++ b/src/dxvk/dxvk_context.cpp
+@@ -6032,7 +6032,8 @@
+     const auto& c = DxvkFoveationConfig::get();
+     float uv[4] = { c.centerX, c.centerY, 1.0f - c.centerX, c.centerY };  // lens centres without gaze
+ 
+-    if (gaze->valid)
++    const bool gazeValid = gaze->valid != 0u;
++    if (gazeValid)
+       uv[0] = gaze->u[0], uv[1] = gaze->v[0], uv[2] = gaze->u[1], uv[3] = gaze->v[1];
+ 
+     if (gaze->seq != map.gazeSeq)
+@@ -6056,6 +6057,21 @@
+     std::vector<uint8_t> data = buildFoveationMap(map.fbExtent, map.texelSize,
+       map.mapExtent, m_device->properties().khrFragmentShadingRate.maxFragmentSize, uv, ringScale);
+     uploadFoveationMap(map, data);
++
++    // Reproduction diagnostic added 2026-10-14; not in the recovered session DLLs.
++    // Bounded trace of the map actually queued for upload, not a performance metric.
++    static thread_local uint32_t gazeTraceCount = 0;
++    static thread_local uint64_t gazeTraceTick = 0;
++    if (c.log && gazeTraceCount < 64u && now - gazeTraceTick >= 1000u) {
++      gazeTraceCount++;
++      gazeTraceTick = now;
++      uint32_t checksum = 2166136261u;
++      for (uint8_t value : data)
++        checksum = (checksum ^ value) * 16777619u;
++      Logger::info(str::format("Foveation audit: target ", map.fbExtent.width, "x", map.fbExtent.height,
++        " seq ", map.gazeSeq, " valid ", gazeValid, " uv ", uv[0], ",", uv[1], ",", uv[2], ",", uv[3],
++        " scale ", ringScale, " map-fnv1a32 ", checksum));
++    }
+   }
+ 
+ 

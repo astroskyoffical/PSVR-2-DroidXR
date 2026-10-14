@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "upstream": "https://github.com/doitsujin/dxvk",
+  "upstream_commit": "a6764047e587178283fcde4073ae6e1410af594f",
+  "recorded_version": "2.7.1",
+  "recorded_target": "Windows x64 PE DLLs through the existing Linux-container Proton/FEX route",
+  "original_patch_files": [
+    "0001-retained-d3d11-timing-base.patch",
+    "0002-recovered-dxvk-gaze-foveation.patch"
+  ],
+  "optional_new_diagnostic_patch": "0003-OPTIONAL-new-gaze-map-trace.patch",
+  "compiled_source_files": [
+    {
+      "path": "src/dxvk/dxvk_cmdlist.h",
+      "sha256": "07a35c8a02af925e1c0e35ace42ba1811f99366aacecf46891f01a3bead9f00d",
+      "compiler_checksum_matches": 6
+    },
+    {
+      "path": "src/dxvk/dxvk_context.cpp",
+      "sha256": "3a112f7d03beb0e3fbb6eb0e166dc6997dd39799631b904da8f37db5df2e5d38",
+      "compiler_checksum_matches": 1
+    },
+    {
+      "path": "src/dxvk/dxvk_context.h",
+      "sha256": "59478debd5b579fabee89de19ce2003eb09e5191738b3d60ab0dbaf1fba66eb2",
+      "compiler_checksum_matches": 6
+    },
+    {
+      "path": "src/dxvk/dxvk_device.h",
+      "sha256": "6a26c6290e4b9fe818eabcb01f9bf36fe0e8630445a838595a89d1731ffc317b",
+      "compiler_checksum_matches": 6
+    },
+    {
+      "path": "src/dxvk/dxvk_device_info.cpp",
+      "sha256": "8e5e5358aa7def3aef10d51a1256b77876d4893718052898065245ef1881cd8b",
+      "compiler_checksum_matches": 1
+    },
+    {
+      "path": "src/dxvk/dxvk_device_info.h",
+      "sha256": "6bedbb819bf5400d28db9269755983ef185ccb4bd55d2e62e03fd5d69e50075e",
+      "compiler_checksum_matches": 7
+    },
+    {
+      "path": "src/dxvk/dxvk_foveation.h",
+      "sha256": "501acb3197bc36963ce169d34bce01b59e5840914ebd1e37d15b8ba0297be759",
+      "compiler_checksum_matches": 2
+    },
+    {
+      "path": "src/dxvk/dxvk_framebuffer.h",
+      "sha256": "44b59cf4b71c19d0bbd8f08556b37249831129cefb303cdeb1a2452cd3182eda",
+      "compiler_checksum_matches": 6
+    },
+    {
+      "path": "src/dxvk/dxvk_graphics.cpp",
+      "sha256": "dd137d6d842cdcaadb25ed98eee0ab6cb0bfcd61c56865a89eb4893def9a3403",
+      "compiler_checksum_matches": 1
+    },
+    {
+      "path": "src/dxvk/dxvk_graphics.h",
+      "sha256": "170ae6557b1c2dd65b569fe8a11e2e07648f366157364e96fa6a4b92e5eab0e3",
+      "compiler_checksum_matches": 6
+    },
+    {
+      "path": "src/dxvk/dxvk_image.cpp",
+      "sha256": "fda8b8fe421111ada72083ddc1aeb2641d88bfa0fe791a8a033587e66a6ff0eb",
+      "compiler_checksum_matches": 1
+    },
+    {
+      "path": "src/dxvk/dxvk_memory.cpp",
+      "sha256": "5631c764e266fafca4364c18c888d7c650bc089c159bb7e80b64a0b1de95944d",
+      "compiler_checksum_matches": 1
+    },
+    {
+      "path": "src/dxvk/dxvk_shader.cpp",
+      "sha256": "975b64bead26a7d55f23e8705b3e9f0a259908ab9f9ef17728f746acc39de62d",
+      "compiler_checksum_matches": 1
+    },
+    {
+      "path": "src/vulkan/vulkan_loader.h",
+      "sha256": "4b082f4e9687fa78a414ef0d83f9324785b3a05b8bedf50f4ae2a82bb2db8ca1",
+      "compiler_checksum_matches": 7
+    },
+    {
+      "path": "src/d3d11/d3d11_interop.cpp",
+      "sha256": "ee21ed935f982d3b46e4d347669fe749a628865f833e59ef12aa23fca15e958d",
+      "compiler_checksum_matches": 1
+    }
+  ],
+  "retained_saved_dlls": [
+    {
+      "name": "d3d11.dll",
+      "sha256": "ed41a52873bc060463d33a9affe48f501236b966a5637a66ecd6ee75495b4ac4",
+      "saved_and_retained_bytes_match": true
+    },
+    {
+      "name": "dxgi.dll",
+      "sha256": "abca767a0842e3f20aa0e6c05f5f5fe24f4b1bee460d27d4fb106b1842b0e1d1",
+      "saved_and_retained_bytes_match": true
+    }
+  ],
+  "evidence": "All 15 altered sources match retained compiler SHA-256 records; both retained outputs match the saved phone-session DLLs; PE/PDB GUID-age pairs agree. Publisher separately verified current source and saved/retained DLL byte hashes against the existing audit.",
+  "patch_replay": "Existing audit clean-applied the two original patches to the upstream base; all 15 altered files matched recovered source after line-ending normalization.",
+  "phone_result": "AstroPC confirms successful phone foveation and improved image quality with SGSR2.",
+  "remaining": [
+    "Retained pass-level live-gaze/map trace.",
+    "Controlled comparable GPU-work measurements.",
+    "No independent clean byte-identical DLL rebuild claimed.",
+    "Full runtime and third-party dependency redistribution remains separate."
+  ],
+  "binaries_included": false,
+  "private_audit_paths_or_logs_included": false
+}
