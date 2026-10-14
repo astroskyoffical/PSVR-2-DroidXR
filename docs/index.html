@@ -1,12 +1,85 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#050606"><meta name="description" content="PSVR-2-DroidXR explores PSVR 2 with rooted Android phones. Container-based VR has been demonstrated; native Android remains in progress."><title>PSVR-2-DroidXR | VR, reworked for Android</title><link rel="stylesheet" href="styles.css?v=project-2"><script type="module" src="app.mjs?v=project-2"></script></head>
-<body><header class="top shell"><a class="logo" href="#project"><i><b></b><b></b><b></b></i> PSVR-2<span>/</span>DROIDXR</a><nav><a href="#approach">Approach</a><a href="#status">Status</a><a href="#compatibility">Compatibility</a><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Source &#8599;</a></nav></header>
-<main id="project"><section id="project-hero" class="hero shell"><div><p class="eyebrow">EXPERIMENTAL ANDROID TOOLKIT</p><h1 id="hero-title">PSVR 2,<br><span>reworked for</span><br>Android.</h1><p class="lede">A reverse-engineering project exploring how console-designed VR hardware can work with rooted Android phones, despite a different set of requirements.</p><div class="status"><b>CONTAINER PATH / DEMONSTRATED*</b><b>NATIVE ANDROID / IN PROGRESS</b></div><p class="story">Unusual hardware requirements. A different phone ecosystem. Plenty of skepticism. DroidXR works through the gap one interface at a time.</p><a class="button" href="#approach">Explore the approach &#8595;</a> <a class="link" href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Project repository &#8599;</a><small class="byline">* Container status supplied by project author.</small></div>
-<div class="art"><div class="art-label">DEVICE STUDY / ROOTED ANDROID</div><canvas id="signal-canvas" aria-hidden="true"></canvas><svg class="device" viewBox="0 0 700 440" role="img" aria-labelledby="art-title art-desc"><title id="art-title">Original illustration of a headset connected to a phone</title><desc id="art-desc">Unbranded VR headset and smartphone joined by a cable with subtle green circuit lines.</desc><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#303632"/><stop offset="1" stop-color="#090c0a"/></linearGradient><filter id="blur"><feGaussianBlur stdDeviation="6"/></filter></defs><g class="traces" fill="none"><path d="M15 103h96l22 22h67M21 196h70l20-20h42M12 300h86l25 24h57m390-221h56v43h72m-124 30h52m-96 142h90l24-25h68"/><circle cx="200" cy="125" r="4"/><circle cx="200" cy="324" r="4"/><circle cx="677" cy="164" r="4"/></g><path class="wire" d="M491 249c95 5 111 60 77 86-34 26-91 7-118 35-23 24-4 51 24 48 19-2 33-13 52-10"/><g transform="translate(83 85)"><path class="band" d="M58 98C81 24 145 0 224 0c79 0 138 27 158 98"/><path class="visor" d="M23 118c9-34 33-48 71-52l270 1c42 4 65 24 73 59l-19 90c-7 32-30 51-65 54H92c-38-3-58-25-64-57z"/><path class="glass" d="M59 130c5-18 20-27 41-28h262c22 1 36 13 42 32l-14 64c-4 21-20 32-42 34H99c-23-2-35-14-39-37z"/><path class="lens" d="M96 144h68l15 66h-70zm126 0h68l-12 66h-68z"/><path class="side" d="m23 140-20 9 7 49 24 12m402-67 23 10-8 49-27 12"/><circle class="glow" cx="392" cy="252" r="12"/><circle class="led" cx="392" cy="252" r="4"/></g><g transform="translate(535 292) rotate(7)"><rect class="phone" width="83" height="134" rx="15"/><rect class="screen" x="6" y="7" width="71" height="120" rx="11"/><path class="screenwave" d="m18 76 11-16 11 10 11-23 11 13 9-12"/></g><text class="svg-caption" x="25" y="420">DISPLAY / USB / DEVICE GUIDANCE</text></svg><span class="art-note">CONCEPT ART / NOT DEVICE EVIDENCE</span></div></section>
-<section class="sound shell"><div><b>OPTIONAL REACTIVE SOUNDTRACK</b><small id="audio-status">Autoplay may be blocked. Play when you want audio.</small></div><div class="audio-controls"><button id="sound-toggle" aria-label="Play soundtrack">Play</button><audio id="audio" controls preload="metadata" src="assets/mix.mp3" aria-label="Optional user-supplied soundtrack">Audio playback is not supported.</audio><button id="mute-toggle" aria-pressed="false">Mute</button></div><small class="credit">User-supplied mix; artist details were not provided. Audio affects page accents, not headset telemetry.</small></section>
-<section id="approach" class="section shell"><p class="eyebrow">THE ENGINEERING STORY</p><div class="intro"><h2>Made for a console.<br><span>Reconsidered for a phone.</span></h2><p>Rooted Android creates a different route for hardware designed around a console. The project investigates those mismatched expectations and traces the interfaces, while a container-based path provides an author-reported demonstration milestone.</p></div><div class="grid3"><article><small>01 / UNDERSTAND</small><h3>Start at the hardware</h3><p>Reverse engineering begins with what each side expects: headset and phone have different assumptions.</p></article><article><small>02 / CONNECT</small><h3>Trace the interfaces</h3><p>Documented scope includes LinkDoctor, display and USB integration, kernel patch guidance, and compatibility diagnostics.</p></article><article><small>03 / EXTEND</small><h3>Keep moving native</h3><p>A container-based phone VR route has been demonstrated. Native Android remains work in progress.</p></article></div><p class="scope"><b>Scope, plainly:</b> this is an experimental toolkit; compatibility remains device-dependent.</p></section>
-<section id="status" class="section dark"><div class="shell"><p class="eyebrow">TWO DIFFERENT MILESTONES</p><div class="intro"><h2>Progress, with<br><span>the edges visible.</span></h2><p>Container and native are separate paths. Read their status separately, not as one readiness claim.</p></div><div class="paths"><article class="proven"><small>PATH A / CONTAINER  /  DEMONSTRATED*</small><h3>Phone VR through a container</h3><p>The project author reports this route has been proven. It shows a working direction, not broad device compatibility.</p><small>* AUTHOR-REPORTED STATUS</small></article><article><small>PATH B / NATIVE  /  WORK IN PROGRESS</small><h3>A native Android path</h3><p>Native integration is still being worked on and is not presented as ready.</p></article></div></div></section>
-<section class="section shell engineering"><div><p class="eyebrow">ENGINEERING SURFACES</p><h2>The hard parts<br>live in the <span>interfaces.</span></h2><p>Driver, display compression (DSC), USB, and Android runtime concerns are work areas in this effort, not solved status claims.</p><a class="link" href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Read the project overview &#8599;</a></div><div class="grid2"><article><small>01</small><h3>Drivers &amp; kernel</h3><p>Device-specific guidance and compatibility questions.</p></article><article><small>02</small><h3>Display / DSC</h3><p>Display behavior and compression to investigate.</p></article><article><small>03</small><h3>USB integration</h3><p>Connection and integration in the toolkit scope.</p></article><article><small>04</small><h3>Android runtime</h3><p>Native integration remains in progress.</p></article></div></section>
-<section class="evidence"><div class="shell intro"><div><p class="eyebrow">EVIDENCE &amp; STATUS</p><h2>Fact first.<br><span>Possibility next.</span></h2></div><div><p>The container milestone is project-author-reported. No verified demonstration video was supplied for this page. See the public project overview and Discussions for current information.</p><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Project overview &#8599;</a><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/discussions" target="_blank" rel="noreferrer">Community discussions &#8599;</a></div></div></section>
-<section id="compatibility" class="section shell compatibility"><p class="eyebrow">BEFORE YOU EXPLORE</p><h2>Rooted phone.<br>Device-specific reality.</h2><p>The project targets rooted Android phones. Compatibility is device-dependent; consult the README and Discussions for current project information.</p><a class="button" href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">View project &#8599;</a> <a class="link" href="https://github.com/astroskyoffical/PSVR-2-DroidXR/discussions" target="_blank" rel="noreferrer">Open discussions &#8599;</a></section></main>
-<footer class="footer shell"><a class="logo" href="#project">PSVR-2<span>/</span>DROIDXR</a><small>EXPERIMENTAL TOOLKIT  /  DEVICE-DEPENDENT STATUS</small><a href="#project">BACK TO TOP &#8593;</a></footer></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="DroidXR: personal engineering notes on PSVR 2, rooted Android, display handoff and the ongoing native port.">
+  <title>DroidXR — project notes</title>
+  <link rel="stylesheet" href="styles.css?v=journal-3">
+  <script type="module" src="app.mjs?v=journal-3"></script>
+</head>
+<body>
+  <canvas id="signal-canvas" aria-hidden="true"></canvas>
+  <header class="page-header">
+    <a class="author" href="https://github.com/astroskyoffical" target="_blank" rel="noreferrer">astroskyoffical</a>
+    <nav aria-label="Project navigation"><a href="#work">Work</a><a href="#status">Status</a><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">GitHub &#8599;</a></nav>
+  </header>
+  <main id="project">
+    <div class="intro">
+      <p class="note-label">PSVR 2 / rooted Android / engineering journal</p>
+      <h1 id="hero-title">DroidXR</h1>
+      <p class="lead">I'm working on getting PSVR 2 running from a rooted Android phone. This is the story of the working container path, the display and USB work behind it, and the native Android port still being built.</p>
+      <div class="connection" aria-label="PSVR 2 connected to rooted Android"><span>PSVR 2</span><i aria-hidden="true"></i><span>Rooted Android</span></div>
+      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Container-based phone VR: demonstrated.<br><span class="indent">Native Android: work in progress.</span></p>
+    </div>
+
+    <section id="work">
+      <p class="section-number">01 / How this started</p>
+      <h2>Why I'm doing this</h2>
+      <p>PSVR 2 was built around a console environment. A rooted Android phone has a different graphics stack, USB environment and runtime. Getting the two to work together means understanding those expectations and working through them.</p>
+      <p>There was skepticism about whether this could work. I kept going. The container-based phone VR path became a real milestone; now the work is about bringing the pieces together natively on Android.</p>
+    </section>
+
+    <section>
+      <p class="section-number">02 / Display work</p>
+      <h2>LinkDoctor, DSC and display handoff</h2>
+      <p>LinkDoctor is where we've worked on inspecting the physical display path: EDID, native modes, display compression through DSC, and whether the reported output agrees with the active display state.</p>
+      <p>The earlier work also explored direct display handoff with DRM leasing, KMS and Vulkan. The difficult part is handing the external output to Linux while Android keeps its own screen working, then restoring that output when the session ends.</p>
+      <p>This is why the display work is more than finding a resolution that looks right. Ownership, synchronization and cleanup are part of making the path usable.</p>
+    </section>
+
+    <section>
+      <p class="section-number">03 / Runtime work</p>
+      <h2>Monado, OpenXR and the native runtime</h2>
+      <p>An earlier checkpoint built Monado for ARM64 Linux with PSVR 2 and Sense support enabled. OpenXR and the graphics runtime are part of the work, alongside the display path.</p>
+      <p>The native Android effort still has its own integration work: USB probing, the external compositor, and the relationship between headset input and the runtime. I keep build results and hardware results separate in the project notes.</p>
+    </section>
+
+    <section>
+      <p class="section-number">04 / Reverse engineering</p>
+      <h2>Driver and tracking research</h2>
+      <p>The driver research has included static analysis of the official driver and source inspection of the surrounding runtime. The useful questions are specific: what can be reused, what depends on another driver, and what has to be implemented for the native path?</p>
+      <p>USB interface behavior, device timestamps, calibration and Sense optical tracking remain important parts of that investigation. A changing input value is a useful observation; reliable pose and tracking need more evidence.</p>
+    </section>
+
+    <section id="status">
+      <p class="section-number">05 / Where it stands</p>
+      <h2>Where it stands now</h2>
+      <p>The container-based phone VR result is my reported milestone. The native Android port is still in progress, with device-specific integration and hardware checks remaining.</p>
+      <p>The next checks include USB transport and interface lifecycle, direct display acquisition and presentation, calibration, tracking behavior, and clean recovery when a device disconnects or a session ends.</p>
+      <p>Earlier engineering checkpoints came from the project notes. Current status here is supplied by the project author; this page does not read live headset or phone telemetry.</p>
+    </section>
+
+    <section class="project-links">
+      <p class="section-number">Follow the work</p>
+      <p><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Project repository &#8599;</a><br><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/README.md" target="_blank" rel="noreferrer">Project overview &#8599;</a><br><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/discussions" target="_blank" rel="noreferrer">Compatibility and discussions &#8599;</a></p>
+    </section>
+    <footer><span>DroidXR / an ongoing engineering project</span><a href="#project">Back to top &#8593;</a></footer>
+  </main>
+
+  <aside class="sound-tools" aria-label="Optional soundtrack and motion">
+    <div class="tool-row">
+      <button id="sound-toggle" type="button" aria-label="Play optional soundtrack">Sound off</button>
+      <button id="mute-toggle" type="button" aria-pressed="false">Mute</button>
+      <button id="motion-toggle" type="button" role="switch" aria-checked="true">Motion on</button>
+      <details id="audio-details"><summary aria-label="More audio controls">&#8943;</summary><div class="audio-panel">
+        <audio id="audio" controls preload="metadata" src="assets/mix.mp3" aria-label="Optional user-supplied music mix"></audio>
+        <p id="audio-status" aria-live="polite">Optional music. Nothing plays until you choose it.</p>
+        <p class="credit">User-supplied mix: SPARTAN HARDSTYLE, JUMPSTYLE, HARDTEKK, DARK TRIAD, BP EDIT SONGS PLAYLIST. Individual artist details were not supplied.</p>
+        <p class="credit">Accents use audio energy and inferred timing cues.</p>
+      </div></details>
+    </div>
+  </aside>
+</body>
+</html>
