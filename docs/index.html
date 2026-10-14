@@ -6,11 +6,18 @@
   <meta name="theme-color" content="#080808">
   <meta name="description" content="DroidXR aims to give PSVR 2 a portable second life, with an Android phone as its computer. The real build story, working container route and native Android progress.">
   <title>DroidXR - project notes</title>
-  <link rel="stylesheet" href="styles.css?v=journal-6.1">
-  <script type="module" src="app.mjs?v=journal-6"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-7">
+  <script type="module" src="app.mjs?v=journal-7"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
+  <dialog id="sound-invitation" aria-labelledby="sound-title" aria-describedby="sound-description">
+    <button id="sound-close" class="invitation-close" type="button" aria-label="Close and continue silently">&#215;</button>
+    <p class="note-label">A little atmosphere</p>
+    <h2 id="sound-title">Read with sound?</h2>
+    <p id="sound-description">The music brings the lights to life. Enable it at half volume, or keep reading silently. You can change your mind using the sound control.</p>
+    <div class="invitation-actions"><button id="sound-approve" type="button" autofocus>Enable sound</button><button id="sound-decline" type="button">Continue silently</button></div>
+  </dialog>
   <button id="emblem-control" class="hacker-emblem" type="button" aria-label="Floating DroidXR emblem. Drag to move, click to nudge, arrow keys to move, Home to reset." title="Drag to move · Click to nudge · Arrow keys move · Home resets">
     <svg viewBox="0 0 220 230" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs><linearGradient id="emblem-metal" x1="47" y1="58" x2="177" y2="143" gradientUnits="userSpaceOnUse"><stop stop-color="#eee"/><stop offset=".5" stop-color="#777"/><stop offset="1" stop-color="#ddd"/></linearGradient></defs>
@@ -47,8 +54,8 @@
       <h2>That's Skyrim VR. Running from my phone.</h2>
       <p>This is the point where the idea became real for me. Skyrim runs very well in my Linux-container setup, with full eye tracking and eye-tracked foveated rendering. That means the game puts more detail where I'm looking, instead of spending the same effort on every part of the picture.</p>
       <div class="demo-frame">
-        <video id="demo-video" controls muted playsinline preload="none" poster="assets/skyrim-breakthrough-bfc61bc9.jpg" data-src="assets/skyrim-breakthrough-bfc61bc9.mp4" aria-label="Skyrim VR running on the phone: side-by-side eye views and moving gaze overlays" aria-describedby="demo-description"></video>
-        <div class="demo-toolbar"><span>Phone → PSVR 2 · 50 seconds</span><button id="demo-sound" type="button" aria-pressed="false">Video sound off</button></div>
+        <video id="demo-video" controls muted playsinline preload="none" poster="assets/skyrim-original-bfc61bc9.png" data-src="assets/skyrim-original-bfc61bc9.mp4" aria-label="Skyrim VR running on the phone: side-by-side eye views and moving gaze overlays" aria-describedby="demo-description"></video>
+        <div class="demo-toolbar"><span>Original recording · 1080p / 60 fps</span><button id="demo-sound" type="button" aria-pressed="false">Video sound off</button></div>
       </div>
       <p id="demo-description" class="media-caption">My recording shows the two eye views, moving gaze overlays and Skyrim gameplay. It compares two versions of the rendering. It plays muted when you scroll it into view; the controls let you pause or turn its sound on.</p>
       <p class="media-caption">This is the working Linux route. The newer native Android route below is still in development. “Runs very well” describes my experience in this setup, rather than a measured comparison with other headsets.</p>
@@ -151,7 +158,7 @@
       <button id="motion-toggle" type="button" role="switch" aria-checked="true">Motion on</button>
       <details id="audio-details"><summary aria-label="More audio controls">&#8943;</summary><div class="audio-panel">
         <audio id="audio" controls preload="metadata" src="assets/mix.mp3" aria-label="Optional user-supplied music mix"></audio>
-        <p id="audio-status" aria-live="polite">Music starts at half volume if your browser allows it. Use Enable music if it asks for a click.</p>
+        <p id="audio-status" aria-live="polite">Optional music starts at half volume when you enable it.</p>
         <p class="credit">User-supplied mix: SPARTAN HARDSTYLE, JUMPSTYLE, HARDTEKK, DARK TRIAD, BP EDIT SONGS PLAYLIST. Individual artist details were not supplied.</p>
         <p class="credit">Bokeh follows bass energy. The emblem pulses on stronger onset-aligned beat estimates; these are inferred cues, not manually verified timings.</p>
       </div></details>

@@ -12,6 +12,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const video = document.querySelector('#demo-video');
 const videoSound = document.querySelector('#demo-sound');
 const emblem = document.querySelector('#emblem-control');
+const invitation = document.querySelector('#sound-invitation');
 let audioContext, analyser, bins;
 const sources = new WeakMap();
 let beats = [], drops = [], lastBeat = -1, lastDrop = -1;
@@ -23,6 +24,9 @@ let sceneTime = 0, pointerX = 0, pointerY = 0, driftX = 0, driftY = 0, driftScro
 let dragX = 0, dragY = 0, drag = null, suppressClick = false, pokeAt = -100;
 let videoInView = false, userPausedVideo = false, autoPausingVideo = false, restoreMusic = false;
 audio.volume = .5;
+function saveSoundChoice(value) {
+  try { sessionStorage.setItem('droidxr-sound-choice', value); } catch {}
+}
 const particles = Array.from({ length: 18 }, (_, i) => ({
   x: (i * .618034 + .13) % 1, y: (i * .414214 + .17) % 1,
   depth: .3 + (i % 5) * .17, radius: 24 + (i * 17 % 53), phase: i * 1.9
@@ -212,9 +216,10 @@ sound.addEventListener('click', () => {
     video.muted = true;
     analyse(audio);
     audio.play().catch(musicBlocked);
-  } else audio.pause();
+  } else { saveSoundChoice('silent'); audio.pause(); }
 });
 audio.addEventListener('play', () => {
+  saveSoundChoice('enabled');
   if (videoAudible()) video.muted = true;
   analyse(audio);
   sound.textContent = 'Pause sound';
@@ -235,6 +240,8 @@ audio.addEventListener('seeked', () => { seeking = false; resetCues(); });
 audio.addEventListener('error', () => { status.textContent = 'The optional mix could not load. You can still read the journal.'; });
 mute.addEventListener('click', () => { audio.muted = !audio.muted; });
 audio.addEventListener('volumechange', () => {
+  if (audio.muted || audio.volume === 0) saveSoundChoice('silent');
+  else if (!audio.paused) saveSoundChoice('enabled');
   mute.textContent = audio.muted ? 'Unmute' : 'Mute'; mute.setAttribute('aria-pressed', String(audio.muted));
 });
 motion.addEventListener('click', () => setMotion(!enabled));
@@ -351,7 +358,39 @@ emblem.addEventListener('keydown', event => {
 });
 window.addEventListener('resize', () => moveEmblem(dragX, dragY));
 
-// Request ordinary browser playback; a rejected autoplay promise exposes one clear action.
-audio.play().then(() => { root.dataset.autoplay = 'allowed'; }, () => {
-  root.dataset.autoplay = 'blocked'; musicBlocked();
+// Sound is invited once per tab session. Declining never installs a later gesture unlock.
+function closeInvitation() {
+  if (invitation.open) invitation.close();
+  sound.focus({ preventScroll: true });
+}
+function continueSilently() {
+  restoreMusic = false;
+  audio.pause(); saveSoundChoice('silent');
+  root.dataset.autoplay = 'declined';
+  closeInvitation();
+}
+document.querySelector('#sound-approve').addEventListener('click', () => {
+  saveSoundChoice('enabled'); video.muted = true;
+  analyse(audio);
+  audio.play().then(() => { root.dataset.autoplay = 'approved'; }, musicBlocked);
+  closeInvitation();
 });
+document.querySelector('#sound-decline').addEventListener('click', continueSilently);
+document.querySelector('#sound-close').addEventListener('click', continueSilently);
+invitation.addEventListener('cancel', event => { event.preventDefault(); continueSilently(); });
+invitation.addEventListener('keydown', event => {
+  if (event.key !== 'Tab') return;
+  const buttons = invitation.querySelectorAll('button'), first = buttons[0], last = buttons[buttons.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
+// Native media pause is also an explicit choice unless video sound temporarily took over.
+audio.addEventListener('pause', () => { if (!restoreMusic) saveSoundChoice('silent'); });
+let soundChoice;
+try { soundChoice = sessionStorage.getItem('droidxr-sound-choice'); } catch {}
+if (soundChoice === 'enabled') {
+  audio.play().then(() => { root.dataset.autoplay = 'allowed'; }, () => {
+    root.dataset.autoplay = 'blocked'; musicBlocked();
+  });
+} else if (soundChoice === 'silent') root.dataset.autoplay = 'declined';
+else { root.dataset.autoplay = 'awaiting-choice'; invitation.showModal(); }
