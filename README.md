@@ -64,9 +64,3 @@ AstroPC built the phone-hosted hardware integration, Android/display integration
 Forks and contributions are welcome. Original project software and documentation are **GPL-3.0-only within the files and portions listed in [LICENSE-SCOPE.md](LICENSE-SCOPE.md)**; commercial use is allowed under those terms. The full license is in [LICENSE](LICENSE), with credit in [NOTICE](NOTICE). Preserve applicable source, license and attribution obligations. Upstream components, media and proprietary prerequisites retain their own terms.
 
 DroidXR is an independent community project, not affiliated with or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their owners.
-
-## Website publishing
-
-The original recording is served directly by Pages without reencoding or a large Git blob. The standard Actions workflow fetches the full MP4 from the last successful Pages deployment, verifies its size and hash, and includes it in the next site artifact. A Pages-only rebuild has completed successfully; the workflow has no release fallback.
-
-The local original and verified local archive are recovery copies. If the previous Pages media is unavailable or mismatched, the build stops before deployment and recovery uses one of those copies. The expiring Actions artifact is not the rebuild source. Publishing uses the existing GitHub Pages environment and temporary job tokens.
