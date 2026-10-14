@@ -1,0 +1,9 @@
+Copyright (C) 2026 AstroPC (astroskyoffical)
+Project: https://github.com/astroskyoffical/PSVR-2-DroidXR
+
+AstroPC: phone-hosted hardware integration, Android/display integration, and the glue connecting the working setup.
+iVRy: PSVR2 reverse-engineering research and shared DSC findings; see the prominent acknowledgment in README.md.
+Upstream contributors and their component notices retain their own identities and terms.
+
+The copyright grant covers only original software and documentation portions identified in LICENSE-SCOPE.md.
+These acknowledgments add no advertising-credit condition to GPL-3.0-only.

@@ -1,4 +1,10 @@
 <!doctype html>
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project portions only; see https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md
+License: https://www.gnu.org/licenses/gpl-3.0.html
+-->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -6,8 +12,8 @@
   <meta name="theme-color" content="#080808">
   <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
   <title>DroidXR - VR on your terms</title>
-  <link rel="stylesheet" href="styles.css?v=journal-12">
-  <script type="module" src="app.mjs?v=journal-12"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-13">
+  <script type="module" src="app.mjs?v=journal-13"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
@@ -31,8 +37,19 @@
     <div class="invitation-actions"><button id="mission-explore" type="button" autofocus>Explore the project</button><button id="mission-skip" type="button">Skip introduction</button></div>
     </div>
   </dialog>
+
+  <header class="page-header">
+    <a class="author" href="https://github.com/astroskyoffical" target="_blank" rel="noreferrer">astroskyoffical</a>
+    <nav aria-label="Project navigation"><a href="#breakthrough">Proof</a><a href="#how-it-works">Build</a><a href="#contribute">Join in</a></nav>
+  </header>
+  <main id="project">
+    <div class="intro">
+      <p class="note-label">Hardware integration and software glue by AstroPC</p>
+      <h1 id="hero-title" tabindex="-1">DroidXR</h1>
+      <p class="hero-purpose">VR on your terms.<br>PSVR 2 is the starting point.</p>
+      <div id="emblem-dock" class="emblem-dock">
   <button id="emblem-control" class="hacker-emblem" type="button" aria-label="DroidXR: your hardware, your rules. An open lock and VR visor. Drag to move, click to nudge, arrow keys to move, Home to reset." title="Your hardware. Your rules. · Drag to move · Click to nudge · Arrow keys move · Home resets">
-    <svg viewBox="0 0 220 252" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 220 210" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs><linearGradient id="emblem-metal" x1="47" y1="58" x2="177" y2="143" gradientUnits="userSpaceOnUse"><stop stop-color="#eee"/><stop offset=".5" stop-color="#777"/><stop offset="1" stop-color="#ddd"/></linearGradient></defs>
       <g class="emblem-orbit" stroke="currentColor"><path d="M39 71a77 77 0 0 1 142 0M39 131a77 77 0 0 0 142 0"/><path d="M110 17v10M110 175v10M25 101h10M185 101h10M50 41l7 7M163 154l7 7M50 161l7-7M163 48l7-7"/></g>
       <path d="M49 80Q52 58 78 57h64q26 1 29 23l-4 38q-2 18-20 19h-24l-13-12-13 12H73q-18-1-20-19Z" fill="#101010" stroke="url(#emblem-metal)" stroke-width="2"/>
@@ -43,19 +60,10 @@
       <path d="M47 85h-7v25h8M173 85h7v25h-8M96 145h28" stroke="url(#emblem-metal)" stroke-width="2"/>
       <circle cx="110" cy="120" r="2.2" fill="currentColor"/><path d="M110 122v6" stroke="currentColor" stroke-width="1.5"/>
       <text x="110" y="200" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="17" letter-spacing="3">DROIDXR</text>
-      <text x="110" y="223" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="10" letter-spacing="1.6">YOUR HARDWARE.</text>
-      <text x="110" y="241" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="10" letter-spacing="1.6">YOUR RULES.</text>
     </svg>
+    <span class="emblem-motto"><span>YOUR HARDWARE.</span><span>YOUR RULES.</span></span>
   </button>
-  <header class="page-header">
-    <a class="author" href="https://github.com/astroskyoffical" target="_blank" rel="noreferrer">astroskyoffical</a>
-    <nav aria-label="Project navigation"><a href="#breakthrough">Proof</a><a href="#how-it-works">Build</a><a href="#contribute">Join in</a></nav>
-  </header>
-  <main id="project">
-    <div class="intro">
-      <p class="note-label">An independent project by AstroPC</p>
-      <h1 id="hero-title" tabindex="-1">DroidXR</h1>
-      <p class="hero-purpose">VR on your terms.<br>PSVR 2 is the starting point.</p>
+      </div>
       <p class="lead">I want to choose what runs my headset, keep the session on hardware I control, and keep using the good hardware I already own. DroidXR is my attempt to make that practical, starting with PSVR 2 powered by an Android phone.</p>
       <p class="mission-copy">The aim is more choice over the software, less dependence on one closed ecosystem, and local operation with clearer control over your data. There is working hardware behind the idea, and plenty left to build.</p>
       <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working proof: Skyrim VR, eye tracking and gaze-driven rendering through Linux on the phone.<br><span class="indent">Native Android: an image and head-follow are confirmed. Frame pacing still needs work.</span></p>
@@ -230,9 +238,9 @@
     <section class="project-links" id="credits">
       <p class="section-number">06 / Credits and the work behind it</p>
       <h2>A community project built on other people's work.</h2>
-      <p>DroidXR is an independent, noncommercial community project. It is not affiliated with, sponsored by or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their respective owners.</p>
-      <p>Forks and contributions are welcome. Keep AstroPC's credit and all upstream acknowledgments, and respect each component's own license. The license for this project's original work is being reviewed separately.</p>
-      <p>DroidXR is an independent project by AstroPC. The route builds on <a href="https://github.com/ravindu644/Droidspaces-OSS" target="_blank" rel="noreferrer">Droidspaces</a>, <a href="https://monado.freedesktop.org/" target="_blank" rel="noreferrer">Monado</a>, <a href="https://www.mesa3d.org/" target="_blank" rel="noreferrer">Mesa and Turnip</a>, <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a>, <a href="https://github.com/BnuuySolutions/Ignition" target="_blank" rel="noreferrer">Ignition</a>, <a href="https://github.com/BnuuySolutions/PSVR2Toolkit" target="_blank" rel="noreferrer">PSVR2Toolkit</a> and their contributors. Their identities, credits and licenses stay with their work.</p>
+      <p>DroidXR is an independent community project. It is not affiliated with, sponsored by or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their respective owners.</p>
+      <p>Forks and contributions are welcome. Preserve applicable copyright, license and upstream notices, and respect each component's own license. The original site software and project-authored documentation are <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md" target="_blank" rel="noreferrer">GPL-3.0-only within the listed file scope</a>. Commercial use is allowed under those terms; upstream components keep their own licenses.</p>
+      <p>AstroPC (astroskyoffical) built the phone-hosted hardware integration, Android/display integration and the glue connecting this working setup. The route builds on <a href="https://github.com/ravindu644/Droidspaces-OSS" target="_blank" rel="noreferrer">Droidspaces</a>, <a href="https://monado.freedesktop.org/" target="_blank" rel="noreferrer">Monado</a>, <a href="https://www.mesa3d.org/" target="_blank" rel="noreferrer">Mesa and Turnip</a>, <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a>, <a href="https://github.com/BnuuySolutions/Ignition" target="_blank" rel="noreferrer">Ignition</a>, <a href="https://github.com/BnuuySolutions/PSVR2Toolkit" target="_blank" rel="noreferrer">PSVR2Toolkit</a> and their contributors. Their identities, credits and licenses stay with their work.</p>
       <p>The <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/optional-test-apps.md" target="_blank" rel="noreferrer">optional test-app notes</a> keep separate experiments and their original credits distinct from the core headset method. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/licenses-and-provenance.md" target="_blank" rel="noreferrer">Component notices and provenance</a> describe the distribution limits.</p>
       <p class="source-note">Written from my project notes, saved runtime guide, game tests and native Android research. The Skyrim recording and reports of how it feels are mine. Native test counts are from my supplied summary. Historical tests describe their own setup; this page does not read live headset data.</p>
       <p><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Project repository &#8599;</a></p>

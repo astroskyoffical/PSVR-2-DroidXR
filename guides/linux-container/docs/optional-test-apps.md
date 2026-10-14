@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # Optional test apps
 
 Set up and verify the headset first. Applications are optional consumers of that working path, not core installation dependencies.

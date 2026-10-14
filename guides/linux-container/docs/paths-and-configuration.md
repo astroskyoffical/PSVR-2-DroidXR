@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # Paths and account configuration
 
 This documentation preview uses `${VARIABLE}` to represent installation-specific paths. JSON stores these as literal templates; it does not expand environment variables. File hashes still identify the recovered artifacts. Original engineering paths remain in private evidence.

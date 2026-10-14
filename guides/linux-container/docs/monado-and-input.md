@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # Linux Monado, tracking and input
 
 ## What and why

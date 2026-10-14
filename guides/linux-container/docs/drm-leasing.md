@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # DRM leasing: who owns the headset display
 
 GPU rendering access and display authority are different. A DRM render node allows rendering without granting the connector/CRTC/plane control needed to scan out a headset image. A lease grants a client control over selected display objects; the lessor retains authority. These distinctions follow the [Linux DRM userspace API](https://docs.kernel.org/gpu/drm-uapi.html).

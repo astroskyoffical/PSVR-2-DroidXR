@@ -1,3 +1,9 @@
+/*
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project portions only; see https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md
+License: https://www.gnu.org/licenses/gpl-3.0.html
+*/
 export function normalizeVisualData(x){if(!x||typeof x!=="object")return{duration_seconds:null,energy:[],events:[]};const n=v=>v==null||!Number.isFinite(Number(v))?null:Number(v),energy=(Array.isArray(x.energy)?x.energy:[]).filter(a=>a&&typeof a==="object").map(a=>({time_seconds:n(a.time_seconds),energy:n(a.energy)})).filter(a=>a.time_seconds!==null&&a.energy!==null).map(a=>({time_seconds:a.time_seconds,energy:Math.max(0,Math.min(1,a.energy))})).sort((a,b)=>a.time_seconds-b.time_seconds),events=(Array.isArray(x.events)?x.events:[]).filter(a=>a&&typeof a==="object").map(a=>({time_seconds:n(a.time_seconds),event_type:String(a.event_type||""),strength:n(a.strength)??0,confidence:n(a.confidence)??0,provenance:String(a.provenance||"")})).filter(a=>a.time_seconds!==null).sort((a,b)=>a.time_seconds-b.time_seconds);return{duration_seconds:n(x.duration_seconds),energy,events}}
 export function energyAt(a,t){let l=0,h=a.length;if(!h)return 0;while(l<h){const m=(l+h)>>>1;if(a[m].time_seconds<t)l=m+1;else h=m}const x=a[Math.max(0,l-1)],y=a[Math.min(a.length-1,l)];if(x===y||y.time_seconds<=x.time_seconds)return x.energy;const f=Math.max(0,Math.min(1,(t-x.time_seconds)/(y.time_seconds-x.time_seconds)));return x.energy+(y.energy-x.energy)*f}
 export function eventAt(a,t){let l=0,h=a.length;while(l<h){const m=(l+h)>>>1;if(a[m].time_seconds<=t)l=m+1;else h=m}return a[l-1]||null}

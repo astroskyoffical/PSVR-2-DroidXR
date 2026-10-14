@@ -1,3 +1,9 @@
+/*
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project portions only; see https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md
+License: https://www.gnu.org/licenses/gpl-3.0.html
+*/
 :root{color-scheme:dark;--paper:#080808;--ink:#ededed;--muted:#a0a0a0;--edge-alpha:.12;--edge-glow:3px;--bass-level:0;--pulse-glow:0;--logo-flash:0;--surface-glow:0;--trace-offset:0px}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.85 "Segoe UI",Arial,sans-serif;padding:0 26px 90px;overflow-x:hidden}
 #signal-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
@@ -66,3 +72,7 @@ code{padding:.12em .35em;border:1px solid #dedede;border-radius:4px;background:#
 @media(max-width:600px){.mission-invitation{padding:72px 25px 36px}.mission-invitation .mission-card h2{font-size:31px;margin-bottom:22px}.mission-invitation .mission-card p:not(.note-label){font-size:16px;line-height:1.7}.mission-invitation .note-label{font-size:11px;margin-bottom:21px}.mission-invitation .invitation-actions{margin-top:26px}.mission-invitation .invitation-close{right:15px;top:14px}}
 .ivry-acknowledgment{margin:26px 0;padding:20px 0 6px;border-top:1px solid #777;border-bottom:1px solid #555}.ivry-acknowledgment h3{font-size:23px;line-height:1.4;font-weight:500;margin:0 0 16px}.ivry-acknowledgment p{font-size:17px}
 .emblem-scan{opacity:calc(.12 + var(--logo-flash)*.12)}.emblem-unlocked{stroke-linejoin:miter}
+.emblem-dock{height:0}.hacker-emblem,.motion-off .hacker-emblem{opacity:1}.hacker-emblem svg{opacity:calc(.46 + var(--logo-flash)*.54)}.emblem-motto{display:block;color:#e5e5e5;font:15px/1.55 Consolas,monospace;letter-spacing:.035em;text-align:center;pointer-events:none;margin-top:4px}.emblem-motto span{display:block;white-space:nowrap}
+@media(max-width:1279px){.emblem-dock{height:174px;display:flex;align-items:center;justify-content:center;margin:22px 0 28px}.hacker-emblem{position:relative;inset:auto;display:flex;align-items:center;gap:16px;width:300px;max-width:calc(100% - 28px);padding:8px 0}.hacker-emblem svg{width:116px;flex:0 0 116px}.emblem-motto{font-size:20px;line-height:1.6;text-align:left;margin:0;letter-spacing:0}}
+@media(max-width:380px){.hacker-emblem{gap:12px}.hacker-emblem svg{width:100px;flex-basis:100px}.emblem-motto{font-size:19px}}
+section .target-paths p{color:#222}

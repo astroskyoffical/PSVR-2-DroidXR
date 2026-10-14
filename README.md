@@ -1,6 +1,11 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # PSVR-2-DroidXR
 
-Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-12).
+Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-13).
 
 ## Acknowledgment: iVRy's PSVR2 research
 
@@ -10,9 +15,19 @@ This project's Android app and phone-specific implementation are separate work. 
 
 ## Independent community project
 
-DroidXR is an independent, noncommercial community project. It is not affiliated with, sponsored by or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their respective owners.
+DroidXR is an independent community project. It is not affiliated with, sponsored by or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their respective owners.
 
-Forks and contributions are welcome. Keep AstroPC's credit and all upstream acknowledgments. Each upstream component retains its own license; the project's community purpose does not replace those terms. The license for this project's original work is being reviewed separately.
+Forks and contributions are welcome. Preserve applicable copyright, license and upstream notices. Each upstream component retains its own license; the project's community purpose does not replace those terms.
+
+## Original software license and integration credit
+
+The original standalone site software and original documentation portions listed in [LICENSE-SCOPE.md](LICENSE-SCOPE.md) is licensed under **GNU General Public License version 3 only (GPL-3.0-only)**. The full, unmodified license is in [LICENSE](LICENSE); the [official GNU text](https://www.gnu.org/licenses/gpl-3.0.html) is also available. This is an open-source license: commercial use is allowed under its terms. Forks must retain applicable copyright and license notices and meet the GPL's covered-source obligations when distributing covered software. See [NOTICE](NOTICE) for attribution.
+
+**AstroPC (astroskyoffical)** brought together the phone-hosted hardware integration, Android/display integration and the glue that made this working chain possible. This credits the integration work; it does not claim completed hardware production. iVRy's DSC research and all upstream contributions remain distinctly credited above and below.
+
+This is not a blanket license over Mesa, Monado, kernel-derived code, Sony/Valve files, media or future hardware CAD. Their rights and licenses remain separate. Earlier grants/releases are not retroactively revoked. No additional advertising-credit condition is imposed.
+
+Contribute only code you can lawfully submit under the applicable file's license. Identify third-party sources and preserve their notices; do not copy incompatible, proprietary or confidential material into covered files. Contributors keep their copyright; submitting a contribution does not assign ownership to AstroPC.
 
 ## Linux-container method
 

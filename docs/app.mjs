@@ -1,3 +1,9 @@
+/*
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project portions only; see https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md
+License: https://www.gnu.org/licenses/gpl-3.0.html
+*/
 import { normalizeVisualData, eventAt, pulseAllowed } from './visual-data.mjs';
 
 const audio = document.querySelector('#audio');
@@ -12,6 +18,8 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const video = document.querySelector('#demo-video');
 const videoSound = document.querySelector('#demo-sound');
 const emblem = document.querySelector('#emblem-control');
+const emblemDock = document.querySelector('#emblem-dock');
+const dockedEmblem = matchMedia('(max-width: 1279px)');
 const invitation = document.querySelector('#sound-invitation');
 const missionInvitation = document.querySelector('#mission-invitation');
 const missionProse = missionInvitation.querySelector('.mission-prose');
@@ -338,8 +346,10 @@ reduced.addEventListener('change', event => { if (event.matches) pauseVideo(); }
 // A native button provides keyboard access as well as mouse/touch pointer capture.
 function moveEmblem(x, y) {
   const rect = emblem.getBoundingClientRect();
-  dragX = clamp(x, dragX + 12 - rect.left, dragX + innerWidth - 12 - rect.right);
-  dragY = clamp(y, dragY + 12 - rect.top, dragY + innerHeight - 12 - rect.bottom);
+  const bounds = dockedEmblem.matches ? emblemDock.getBoundingClientRect() : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+  const margin = dockedEmblem.matches ? 14 : 12;
+  dragX = clamp(x, dragX + bounds.left + margin - rect.left, dragX + bounds.right - margin - rect.right);
+  dragY = clamp(y, dragY + bounds.top + margin - rect.top, dragY + bounds.bottom - margin - rect.bottom);
   emblem.style.setProperty('--drag-x', `${dragX}px`);
   emblem.style.setProperty('--drag-y', `${dragY}px`);
 }
@@ -370,6 +380,7 @@ emblem.addEventListener('keydown', event => {
   else if (step) { event.preventDefault(); moveEmblem(dragX + step[0], dragY + step[1]); }
 });
 window.addEventListener('resize', () => moveEmblem(dragX, dragY));
+dockedEmblem.addEventListener('change', () => moveEmblem(0, 0));
 
 // Sound is invited once per tab session. Declining never installs a later gesture unlock.
 function closeInvitation() {

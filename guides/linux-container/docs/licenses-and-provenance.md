@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # Licenses, provenance and release gates
 
 The repository contains documentation, the website and component identity metadata. The separate [Mesa 2026.10.14-r1 release](https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/tag/mesa-turnip-2026.10.14-r1) contains its reviewed driver pair, installer, relative ICDs, notices and package records. A complete runnable headset stack is not bundled. Component hashes establish file identity; they do not establish matching source, a build recipe, a license grant or physical compatibility.

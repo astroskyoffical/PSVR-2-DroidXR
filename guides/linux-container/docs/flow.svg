@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 <svg xmlns="http://www.w3.org/2000/svg" width="1040" height="430" viewBox="0 0 1040 430" role="img" aria-labelledby="title desc">
   <title id="title">PSVR2 Linux-container route on a RedMagic phone</title>
   <desc id="desc">Droidspaces hosts Ubuntu ARM64. A Linux app or desktop sends frames through Monado and custom Mesa to PSVR2. Android HWC retains the card0 master and internal phone screen, and the lease broker passes display control to Mesa using file descriptor 3. PSVR2 USB and Sense inputs reach the Linux driver bridge and Monado. This describes the recovered route, not a newly repeated test.</desc>

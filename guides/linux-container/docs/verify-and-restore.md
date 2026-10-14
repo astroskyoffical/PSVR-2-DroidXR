@@ -1,3 +1,8 @@
+<!--
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project contributions only; see LICENSE-SCOPE.md. Third-party material retains its own terms.
+-->
 # Verify and restore the provisioned baseline
 
 This is an operational reference for the already provisioned, matching device. The full fresh-install path remains gated by [missing source and artifacts](licenses-and-provenance.md). The release inventory itself did not run these commands or start a hardware session.
