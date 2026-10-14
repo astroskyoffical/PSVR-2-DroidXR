@@ -3,6 +3,9 @@
 name: Publish site with original media
 
 on:
+  push:
+    branches: [main]
+    paths: ["docs/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -42,9 +45,7 @@ jobs:
             printf '%s  %s\n' "$expected_sha" "$media" | sha256sum --check --status
           }
           # Prefer the previous verified Pages deployment for every later rebuild.
-          fetch_verified_media 'https://astroskyoffical.github.io/PSVR-2-DroidXR/assets/quest-original-4afc4901.mp4' ||
-          # Bootstrap only: remove this fallback after the first Pages copy is verified.
-          fetch_verified_media 'https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/quest-experiment-2026.10.14-r1/Skyrim-VR-Quest3-2026-10-08-060853.mp4'
+          fetch_verified_media 'https://astroskyoffical.github.io/PSVR-2-DroidXR/assets/quest-original-4afc4901.mp4'
           python3 - <<'PY'
           from pathlib import Path
           paths = list(Path('_site').rglob('*'))
@@ -53,10 +54,6 @@ jobs:
           assert size < 1_000_000_000, 'Site exceeds the conservative 1 GB budget'
           page = Path('_site/index.html')
           html = page.read_text(encoding='utf-8')
-          previous = 'data-src="https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/quest-experiment-2026.10.14-r1/Skyrim-VR-Quest3-2026-10-08-060853.mp4"'
-          if previous in html:
-              assert html.count(previous) == 1
-              html = html.replace(previous, 'data-src="assets/quest-original-4afc4901.mp4"', 1)
           assert 'data-src="assets/quest-original-4afc4901.mp4"' in html
           page.write_text(html, encoding='utf-8')
           print(f'Verified original media; complete site: {size} bytes')

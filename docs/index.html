@@ -12,8 +12,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
   <meta name="theme-color" content="#080808">
   <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
   <title>DroidXR - VR on your terms</title>
-  <link rel="stylesheet" href="styles.css?v=journal-18">
-  <script type="module" src="app.mjs?v=journal-18"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-19">
+  <script type="module" src="app.mjs?v=journal-19"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
@@ -87,7 +87,7 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       <h2>Another headset. Another way to make it my own.</h2>
       <p>I also tried a different route with my Quest 3: a modified WiVRn client, USB Ethernet, and the headset's Wi-Fi switched off. In my setup, the game streamed over that local wired connection. It didn't need DisplayPort; Quest was receiving compressed video through the network.</p>
       <div class="demo-frame">
-        <video id="quest-video" controls controlslist="nodownload" muted playsinline preload="none" poster="assets/quest-original-4afc4901.png" data-src="https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/quest-experiment-2026.10.14-r1/Skyrim-VR-Quest3-2026-10-08-060853.mp4" data-playback-rate="4" aria-label="Skyrim VR in the Meta Quest experiment, initially played at four times the recorded speed" aria-describedby="quest-description"></video>
+        <video id="quest-video" controls controlslist="nodownload" muted playsinline preload="none" poster="assets/quest-original-4afc4901.png" data-src="assets/quest-original-4afc4901.mp4" data-playback-rate="4" aria-label="Skyrim VR in the Meta Quest experiment, initially played at four times the recorded speed" aria-describedby="quest-description"></video>
         <div class="demo-toolbar"><span>Original recording · 1080p / 60 fps</span><div class="video-actions"><button id="quest-speed" type="button" aria-pressed="true">4× speed</button><button id="quest-sound" type="button" aria-pressed="false">Video sound off</button></div></div>
       </div>
       <p id="quest-description" class="media-caption">My recording, shown at 4× speed. Choose the speed button to watch at the original pace. It starts muted when the player comes into view; sound and fullscreen are optional.</p>
@@ -100,8 +100,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       <h2>Put the GPU work where it matters.</h2>
       <p>Once I had the headset working, I wanted the phone to spend less effort on detail I wasn't looking at. That's the idea behind foveated rendering: keep detail around the important part of the view and reduce shading work farther out. Eye tracking can tell the software where I'm looking, but the renderer still has to use that information.</p>
       <p>The work split into different experiments. A Monado compositor path reads per-eye gaze and centers its fuller upscaling work there, with a cheaper upscale outside it. That changes how an already rendered image is processed. I tested SGSR2 on the phone: it worked well and the picture looked better to me. That's an observed image-quality improvement; it doesn't by itself measure GPU-work savings or verify the gaze-following path.</p>
-      <p>Separate Turnip and DXVK prototype files explore shading the periphery less often using a fixed center. The reviewed Turnip proposal is unbuilt. I also tested DXVK foveation on the phone in my setup. Matching that phone-tested build to its exact source revision and patches is still in progress; the retained desktop prototype isn't a complete account of it.</p>
-      <p>What I want from this is less GPU work in the periphery while keeping the part I'm looking at clear. I reported eye tracking and foveation working in the headset. The implementation mapping is still underway, and the completed audit doesn't yet put a reliable number on GPU-work savings in that run.</p>
+      <p>I also tested DXVK foveation on the phone in my setup. We have now recovered the gaze-enabled source and matched it to the retained build and both saved game libraries. The chain is clearer: Monado supplies gaze, the modified DXVK moves a shading-rate map, and selected Skyrim passes use it. The separate unbuilt Turnip experiment isn't needed for this path.</p>
+      <p>The goal is less GPU work in the periphery while keeping the part I'm looking at clear. My successful headset test and the recovered source/build match are both part of the evidence. A retained trace of gaze moving the map in selected game passes and a controlled GPU-work comparison are still needed to measure the benefit.</p>
       <p>This is work around the Linux-container route. The newer native Android route is unfinished, and possible reuse on Steam Frame still needs its own implementation and tests. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/foveated-rendering.md" target="_blank" rel="noreferrer">How the experiments fit together, what was checked, and the upstream work behind them &#8599;</a></p>
     </section>
 
@@ -189,8 +189,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       <p>Skyrim VR ran through the phone's container setup, and I confirmed that it was visible inside PSVR 2. Both Sense controllers were switched on. At that first checkpoint, controller tracking and audio still needed their own checks.</p>
       <p>Later, performance work exposed a problem a frame counter could hide. A game could report more frames while head turns still produced ghosting: old-looking images trailing the movement. The software doing the final headset update was waiting behind the game's graphics work.</p>
       <p>We changed how the phone prioritized those headset updates and passed frames along. In a later comparison, the delay dropped. I put the headset on again: the ghosting was gone, the controllers were fine, and motion felt much smoother. A bigger number on a counter wouldn't have told that story.</p>
-      <p>Eye tracking was the next connection I wanted to make useful. I reported eye tracking and foveation working in my tests, and the recording shows moving gaze overlays. The later source review separates several experiments: gaze-centered upscaling in the compositor, and fixed-center shading prototypes in DXVK and Turnip.</p>
-      <p>The DXVK libraries from the saved game session do not match the source-reviewed prototype. Those working libraries are being traced separately; the older prototype isn't a complete account of the run. The <a href="#foveated-rendering">rendering notes</a> keep the code being inspected, the GPU-work goals and my experience wearing the headset clear.</p>
+      <p>Eye tracking was the next connection I wanted to make useful. I confirmed eye tracking and foveation working in my tests, and the recording shows moving gaze overlays. The recovered DXVK source explains the game-side path: it reads Monado's gaze and updates shading-rate maps for selected Skyrim passes. SGSR2 processing in the compositor is a separate step; I tested that on the phone too and found that it improved the image.</p>
+      <p>The recovered gaze-enabled build matches both libraries from the saved game session, and all 15 altered source files match retained compiler checksums. That resolves the earlier mismatch with an older prototype. The <a href="#foveated-rendering">rendering notes</a> separate this source/build evidence, my headset experience and the runtime trace and GPU-work measurements still to capture.</p>
       <details class="evidence-note"><summary>The motion result, with its limits</summary><p>The 11 October project notes record a matched comparison in which compositor queue delay fell from about 7.7 ms to 0.48 ms. The game's completion-rate proxy fell from 58.5 to 39.3 frames per second, while the worn-headset report improved. These are results from that setup and comparison, not a general phone performance claim or a completed native Android result.</p></details>
     </div>
 

@@ -5,11 +5,11 @@ Original project contributions only; see LICENSE-SCOPE.md. Third-party material 
 -->
 # PSVR-2-DroidXR
 
-Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-18).
+Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-19).
 
-The journal also shows a separate [Meta Quest streaming experiment](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-18#quest-experiment), with the original-quality recording at 4× speed and an option to watch at its recorded pace. The reported modified WiVRn/USB Ethernet setup is distinct from the PSVR 2 display-driver route. The recording does not establish network isolation, telemetry behavior or measured latency.
+The journal also shows a separate [Meta Quest streaming experiment](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-19#quest-experiment), with the original-quality recording at 4× speed and an option to watch at its recorded pace. The reported modified WiVRn/USB Ethernet setup is distinct from the PSVR 2 display-driver route. The recording does not establish network isolation, telemetry behavior or measured latency.
 
-The [foveated-rendering notes](guides/foveated-rendering.md) distinguish reviewed shading prototypes from compositor upscaling. AstroPC confirms DXVK phone testing and an SGSR2 image-quality improvement on the phone. Matching the tested libraries to exact source remains in progress; these observed results are separate from measured GPU-work savings. Mesa R1's public packaging documentation does not establish its foveation capabilities.
+The [foveated-rendering notes](guides/foveated-rendering.md) explain the recovered gaze-enabled DXVK path and separate it from SGSR2 compositor upscaling. The recovered source/build binding now matches both saved phone-session DLLs and all 15 altered compiler inputs. AstroPC confirms phone foveation success and improved image quality with SGSR2. A retained pass-level gaze trace and a controlled GPU-work comparison remain separate checks.
 
 ## Acknowledgment: iVRy's PSVR2 research
 
@@ -79,6 +79,6 @@ Each component page explains its role, recovered installation evidence, checks a
 
 ## Website publishing
 
-The site is moving to a standard GitHub Actions Pages artifact so the full original recording can be served directly by Pages without adding it as a Git blob or reencoding it. The manual bootstrap verifies its exact size and SHA-256 before deployment; its temporary fallback remains until the new copy is verified.
+The site uses a standard GitHub Actions Pages artifact so the full original recording is served directly by Pages without adding it as a Git blob or reencoding it. Each build verifies its exact size and SHA-256. The steady-state workflow fetches only the previous Pages copy and has no release fallback.
 
 The rebuild source is the full original MP4 in the last successful Pages deployment, not the expiring Actions artifact. Each later build verifies that copy before replacing the site. The preserved local original and verified local archive are recovery copies. If the previous Pages media is unavailable, a build fails rather than publishing an incomplete site; recovery then needs one of those copies. This is persistent Pages hosting, not an independent remote backup. The workflow uses the existing GitHub Pages environment and temporary job tokens, with no added persistent credential.

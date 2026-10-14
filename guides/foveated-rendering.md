@@ -3,62 +3,64 @@ Copyright (C) 2026 AstroPC (astroskyoffical)
 SPDX-License-Identifier: GPL-3.0-only
 Original project documentation only; upstream components retain their own terms.
 -->
-# Foveated rendering: what I tried, and what is verified
+# Eye-tracked foveation on the phone: implementation and evidence
 
-I want the phone to spend less GPU work on detail away from where I'm looking. Eye tracking supplies a position; rendering software has to turn that position into a useful quality decision. A moving gaze overlay alone does not establish that the game shaded less of the image.
+I wanted the phone to spend less GPU work on detail away from where I'm looking. I tested eye-tracked foveation in Skyrim VR on my phone-hosted PSVR2 setup, and it worked for me. I also tested SGSR2 processing on the phone and found that it worked well and improved the image.
 
-This note separates source-inspected experiments from the reported working phone-hosted Skyrim run. The working libraries are being matched to implementation source. Older prototype files are not a complete account of that run. The completed audit does not yet supply a quantified, comparable GPU-workload result.
+The source/build investigation now explains that DXVK path. The recovered gaze-enabled source is bound to the retained build, whose two output DLLs exactly match the saved phone-session DLLs. This resolves the earlier source mismatch. A retained pass-level gaze-movement trace and a controlled GPU-work comparison remain separate evidence gaps.
 
-## Three different places to change the work
+## What runs where
 
-| Path | What the inspected artifacts do | Qualification |
+| Path | Implementation | Evidence and scope |
 |---|---|---|
-| Experimental Turnip `TU_FOVEATE` | Proposes fixed radial fragment-density-map foveation through the GMEM path for selected dynamic color-and-depth passes. | This proposal is unbuilt and has no Adreno 840 phone test. It does not follow gaze. The audit does not bind it to released R1. |
-| Experimental DXVK | The source-reviewed prototype builds `VK_KHR_fragment_shading_rate` attachment maps with radial rate rings on matching eye render targets, with a fixed `DXVK_FOVEATION_CENTER`. This does not identify the exact phone-tested revision. | Tested on the phone in AstroPC's setup, as confirmed by AstroPC. A retained PC readback test is also documented; matching the phone-tested binary to its exact source revision and patch set is in progress. |
-| Monado compositor / SGSR2 | The inspected source receives per-eye gaze coordinates, puts fuller SGSR2 processing around them, uses cheaper spatial upscaling outside that area, blends the transition, then applies AMD FSR1 RCAS sharpening. | AstroPC tested SGSR2 in the phone setup and found that it improved image quality. Source and saved configuration/logs also document the gaze-centered path. The observed quality improvement is separate from measuring GPU-work reduction or binding the exact tested build and live-gaze behavior to source. |
+| Recovered gaze-enabled DXVK | Reads Monado's gaze record, updates fragment-shading-rate maps, and attaches them to selected Skyrim graphics passes. | Phone success confirmed by AstroPC. All 15 altered source files match compiler-embedded SHA-256 records; retained output hashes match both saved DLLs, and PE/PDB identities agree. This is a retained source/build binding, not a fresh byte-identical rebuild. |
+| Monado compositor / SGSR2 | The inspected source places fuller SGSR2 reconstruction around gaze, uses cheaper spatial upscaling outside it, blends the transition, then applies AMD FSR1 RCAS sharpening. | AstroPC tested SGSR2 on the phone and found improved image quality. That observation is distinct from measuring GPU-work reduction or proving the exact gaze-to-map behavior of each game pass. |
+| Separate Turnip `TU_FOVEATE` proposal | A fixed radial fragment-density-map experiment through selected GMEM passes. | This proposal is unbuilt and is not required for the recovered DXVK path. It must not replace the gaze-enabled DXVK patch in reproduction instructions. |
 
-The [released Mesa R1 documentation](linux-container/docs/mesa.md) describes the graphics/display route and installation checks. It does not document a foveation implementation or bind these proposals to its packaged drivers. That documentation gap does not settle every capability of the working stack.
+The older fixed-center DXVK prototype and its retained PC readback test are historical inputs. They do not describe the complete phone-tested implementation. The recovered source includes the later gaze reader and map updates.
 
-## Shading, upscaling and streaming are separate
+## From the eyes to selected game passes
 
-[Fragment shading rate](https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_fragment_shading_rate.html) and [fragment density maps](https://docs.vulkan.org/refpages/latest/refpages/source/VK_EXT_fragment_density_map.html) can let one shading calculation cover multiple pixels in selected areas. That is the intended mechanism for reducing peripheral fragment-shader work in the rendering prototypes.
+Monado's gaze bridge projects the supplied gaze direction into each eye's view and writes a shared record. DXVK accesses that record through Wine's file mapping, reads valid per-eye coordinates and uses them to move the detailed region of a fragment-shading-rate map. Invalid gaze falls back to configured lens-center defaults.
 
-Upscaling reconstructs a larger output from an image that has already been rendered. Sharpening changes the resulting image's appearance. The compositor experiment redistributes its upscaling work; that does not by itself show that the game executed fewer fragment-shader invocations. The source inspection identifies those operations separately, even when they appear in one display pipeline.
+The map is attached through [Vulkan fragment shading rate](https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_fragment_shading_rate.html). It lets selected areas share shading work across multiple pixels. The modified DXVK selects passes using configured render-target dimensions and attachment properties. That is a heuristic: it is not a semantic understanding of Skyrim's scene. Unmatched targets, compute dispatches and depth-only shadow passes do not qualify through that gate.
 
-Streaming encodes and transports an image. A foveated stream, a sharper picture, or lower network traffic is not evidence that the game's renderer did less shading. The separate Quest streaming example does not qualify these phone-rendering experiments.
+The implementation also reads a separate radius-scale record from Monado. Its controller uses frame-submission intervals and head motion to adjust the zones. Those control inputs are not an isolated measurement of GPU execution time.
 
-## The live-gaze link still needs matching source
+The shared gaze record is 24 bytes: little-endian `uint32 seq, valid; float u[2], v[2]`. It holds two eye-view projections of the supplied gaze direction; it does not establish independently transported directions for both eyes. The retained reader has no timestamp freshness check or coherent sequence snapshot. Those implementation limits are preserved in the recovered patch rather than silently repaired during reproduction.
 
-The reviewed Monado bridge generates `HmdDevice::set_gaze` code that writes per-eye UV coordinates. The compositor reads that channel to position its upscaling zones. Saved configuration enables this route, and a saved Monado log records gaze-tracking initialization and the configured SGSR2 pass. I also tested SGSR2 on the phone and found that it worked well and improved the image. That is my observed image-quality result; the exact tested source version, gaze-path binding and measured GPU-work reduction remain separate questions.
+## SGSR2, sharpening and Mesa have different jobs
 
-The DXVK libraries captured from a saved Skyrim session have different hashes from the reviewed fixed-center prototype. They contain a `DXVK_FOVEATION_GAZE` string. Matching implementation source and a per-pass/live-gaze trace are being investigated; the string is a clue, rather than a complete explanation of the loaded code. The reviewed prototype's limitations must not be assigned to those different working libraries.
+The game-side DXVK path changes shading rate in selected game passes. Monado's SGSR2 path instead reconstructs an already rendered image, then applies sharpening. I found that SGSR2 improved the picture in the phone setup. That qualitative result is accepted as a test result; it is not a numerical image-quality score or a measured shading-work saving.
 
-I reported a good worn-headset experience with eye tracking and foveation, and improved image quality with SGSR2 on the phone. Those test results remain part of the project evidence. Source/binary matching and controlled GPU-work measurements are the next parts needed to explain the exact implementation and quantify its workload benefit.
+The matched compositor source uses a fuller temporal inner zone, a cheaper spatial outer zone and a blended transition, followed by AMD RCAS. Game shading-rate maps and compositor upscaling zones use different coordinate normalizations. Their presence together does not prove exact geometric alignment.
 
-## What it could bring, and how to check it
+The saved app and compositor Turnip identities match the [published Mesa R1 pair](linux-container/docs/mesa.md). Mesa supplies the underlying graphics/display support; the recovered DXVK integration supplies the gaze-to-shading-rate-map path. The separate experimental `TU_FOVEATE` fragment-density-map proposal is not a prerequisite. Streaming and recording helpers are also separate from this rendering mechanism.
 
-The rendering prototypes aim to reduce peripheral shader invocations while keeping a detailed inner region. That could leave more GPU capacity for the rest of the scene. It does not remove geometry or CPU work. The compositor approach instead explores where to spend image-reconstruction work. The completed review has not yet source-linked a comparable GPU-workload saving to the working phone session.
+## What the recovered evidence establishes
 
-A useful comparison needs the same scene, view, render-target size, image settings, presentation target and GPU operating conditions. Verify which passes received the rate/density map, then compare relevant shader-work counters or GPU execution timings with the feature enabled and disabled. For gaze-following behavior, also verify that valid per-eye gaze actually moves the active region.
+The retained build is DXVK 2.7.1, based on upstream commit [`a6764047e587178283fcde4073ae6e1410af594f`](https://github.com/doitsujin/dxvk/commit/a6764047e587178283fcde4073ae6e1410af594f), with the retained timing delta and recovered gaze-foveation changes. The outputs are Windows x64 DLLs used through the container's Proton/FEX route, not native Android/Bionic libraries.
+
+The audit matched all 15 altered source files to SHA-256 records embedded in retained compiler objects. Both output DLLs match the saved phone-session hashes, and both PE CodeView identities match their PDB GUID/age pairs. The original patches replay cleanly against the upstream base and reproduce those altered inputs after line-ending normalization. This binds the recovered changes to retained build artifacts; it does not promise identical binaries from a new toolchain run or exhaustively checksum every unmodified dependency.
+
+| Saved phone-session artifact | SHA-256 |
+|---|---|
+| `d3d11.dll` | `ed41a52873bc060463d33a9affe48f501236b966a5637a66ecd6ee75495b4ac4` |
+| `dxgi.dll` | `abca767a0842e3f20aa0e6c05f5f5fe24f4b1bee460d27d4fb106b1842b0e1d1` |
+| Matched compositor source, `comp_psvr2_sr.c` | `6f28164b2c21ac9375697a744e1d71859f0440b2966fce583eb32ac190d8d27d` |
+
+These are identity records. This note does not distribute those binaries or any Sony/game payload.
+
+## The remaining runtime and GPU-work checks
+
+The user's successful phone testing and observed SGSR2 improvement are part of the evidence. The remaining runtime capture is a matching session that correlates valid changing gaze, selected-pass binding and changing map payloads queued for upload. The old debug dots are generated when a map is first created and are not rebuilt as gaze moves; they cannot establish tracked map movement.
+
+The intended game-rendering benefit is fewer peripheral fragment-shader invocations while retaining a detailed inner region. It does not remove geometry or CPU work. Quantifying the benefit needs a controlled comparison with the same scene, view, render-target size, image settings, compositor configuration and GPU operating conditions, with relevant shader-work counters or comparable GPU timings. Map-update overhead must be included.
 
 A lower utilization percentage alone can reflect changed clocks, waiting or starvation. It does not establish less work or lower energy consumption. Earlier queue-priority/pipelining observations are a different experiment and are not foveation savings.
 
 ## Scope and credit
 
-This research belongs to the Linux-container route. The native Android route still needs its own integration and qualification. Reusing ideas on Steam Frame is a possibility, not tested compatibility; fixed-center methods and gaze-following methods have different input requirements.
+This is a custom integration in the Linux-container route. The native Android route still needs its own implementation and qualification. Reusing ideas on Steam Frame remains untested compatibility.
 
-AstroPC's integration work builds on [Monado](https://monado.freedesktop.org/), [DXVK](https://github.com/doitsujin/dxvk), [Mesa/Turnip](https://www.mesa3d.org/), Khronos Vulkan/OpenXR, [Qualcomm Snapdragon Game Super Resolution](https://github.com/SnapdragonGameStudios/snapdragon-gsr), and [AMD FidelityFX FSR/RCAS](https://github.com/GPUOpen-Effects/FidelityFX-FSR). The underlying techniques are upstream work, not an invention claim. Their source, credits and licenses remain separate. No experimental patch, proprietary driver or binary is added by this note.
-
-<details>
-<summary>Inspected artifact identities</summary>
-
-These identify private audit inputs; this page does not publish their source or establish their identity with a loaded session.
-
-| Audit input | SHA-256 |
-|---|---|
-| Turnip `TU_FOVEATE` proposal | `29f2ef26ff3354c934cafe2a12bbb02f71635f5842090340e5ba4282e386ea7e` |
-| DXVK fixed-center prototype patch | `bde53bc0a0d0c466ea3004e897e2dc4b3a67ef6cf7746b8bd7519653ebfead7f` |
-| Gaze bridge generator, `monado-steamvr-driver.py` | `63b044e3ebeefb8d252c1e5d2c74a10cc2dce27b6be6ef6fc92cbdab289d8af5` |
-| Compositor source, `comp_psvr2_sr.c` | `6f28164b2c21ac9375697a744e1d71859f0440b2966fce583eb32ac190d8d27d` |
-
-</details>
+AstroPC's integration includes the gaze transport, DXVK injection and local stack configuration. It builds on [Monado](https://monado.freedesktop.org/), [DXVK](https://github.com/doitsujin/dxvk), [Mesa/Turnip](https://www.mesa3d.org/), Khronos Vulkan/OpenXR, [Qualcomm Snapdragon Game Super Resolution](https://github.com/SnapdragonGameStudios/snapdragon-gsr), and [AMD FidelityFX FSR/RCAS](https://github.com/GPUOpen-Effects/FidelityFX-FSR). Their algorithms, source, credits and licenses remain separate. This is not a claim that upstream DXVK or stock Monado supplies the complete phone setup.
