@@ -2,7 +2,7 @@
 SPDX-License-Identifier: GPL-3.0-only -->
 # Source-package license scope and credit
 
-AstroPC (astroskyoffical) offers GPL-3.0-only for the original project-authored changes in patches `0001`, `0002` and `0003`, the original template text in the two `.env.example` files, and the original portions of `README.md` and this document. The full, unmodified GPLv3 text is in [LICENSE-GPL-3.0.txt](LICENSE-GPL-3.0.txt). Commercial use is allowed under its terms. The repository's [scope](https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md) records the same boundary.
+AstroPC (astroskyoffical) offers GPL-3.0-only for the original project-authored changes in patches `0001`, `0002` and `0003`, the original template text in the two `.env.example` files, and the original portions of `README.md`, `TECHNICAL-REFERENCE.md`, both SVG files in `diagrams/`, and this document. The full, unmodified GPLv3 text is in [LICENSE-GPL-3.0.txt](LICENSE-GPL-3.0.txt). Commercial use is allowed under its terms. The repository's [scope](https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md) records the same boundary.
 
 The patches are plainly marked local alterations to DXVK, not upstream DXVK support. They retain unchanged upstream context under the DXVK zlib/libpng terms in the verbatim [LICENSE-DXVK.txt](LICENSE-DXVK.txt). This grant does not relicense DXVK's unchanged code or dependencies. Preserve both applicable notices and terms in a covered distribution. Identity hashes, component names and recorded configuration values are metadata, not an invention or ownership claim.
 

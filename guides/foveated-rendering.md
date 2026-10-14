@@ -53,7 +53,7 @@ These are identity records. This note does not distribute those binaries or any 
 
 ## Source patches and reproduction
 
-The [readable source package](../research/dxvk-gaze/README.md) provides the two recovered patches, exact upstream base, dependency/toolchain records, settings examples, rollback instructions and portable provenance metadata. A third patch is optional new trace instrumentation, not part of the phone-tested build. The [source-only ZIP](../research/dxvk-gaze/psvr2-dxvk-gaze-source-20261014-r1.zip?raw=true) contains those text files and scoped notices. It contains no DLL, Sony/game asset or private log, and is not a complete runtime installer.
+The [readable source package](../research/dxvk-gaze/README.md) provides the two recovered patches, exact upstream base, dependency/toolchain records, settings examples, rollback instructions and portable provenance metadata. A third patch is optional new trace instrumentation, not part of the phone-tested build. The [source-only ZIP](../research/dxvk-gaze/psvr2-dxvk-gaze-source-20261014-r2.zip?raw=true) contains those text files and scoped notices. It contains no DLL, Sony/game asset or private log, and is not a complete runtime installer.
 
 ## The remaining runtime and GPU-work checks
 

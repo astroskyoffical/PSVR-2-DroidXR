@@ -31,6 +31,9 @@ The grant also covers the original project-authored portions of these documentat
 - `guides/native-android.md`
 - `guides/quest-streaming.md`
 - `research/dxvk-gaze/README.md`
+- `research/dxvk-gaze/TECHNICAL-REFERENCE.md`
+- `research/dxvk-gaze/diagrams/rendering-overview.svg`
+- `research/dxvk-gaze/diagrams/gaze-detail.svg`
 - `research/dxvk-gaze/PACKAGE-TERMS.md`
 - `guides/linux-container/docs/device-and-dsc.md`
 - `guides/linux-container/docs/drm-leasing.md`
@@ -44,7 +47,7 @@ The grant also covers the original project-authored portions of these documentat
 - `guides/linux-container/docs/paths-and-configuration.md`
 - `guides/linux-container/docs/verify-and-restore.md`
 
-These modules use native browser APIs, other listed original modules, and Node built-ins for tests. No third-party runtime is linked into this scoped site software. Third-party or attributed quotations (including the attributed iVRy acknowledgment), cited material, upstream code excerpts, trademarks, cue/component identity metadata, and all audio, video, photographs and other media are outside this grant. The original `flow.svg` diagram and inline emblem are expressly included above. Future original files need an explicit scope entry and compatibility review.
+These modules use native browser APIs, other listed original modules, and Node built-ins for tests. No third-party runtime is linked into this scoped site software. Third-party or attributed quotations (including the attributed iVRy acknowledgment), cited material, upstream code excerpts, trademarks, cue/component identity metadata, and all audio, video, photographs and other media are outside this grant. The original SVG diagrams and inline emblem listed above are expressly included. Future original files need an explicit scope entry and compatibility review.
 
 This is not a blanket relicensing of a VR stack. Mesa, Monado, Droidspaces, Wine, compatibility bridges, third-party apps, Linux and kernel-derived code retain their actual licenses and notices. Kernel GPLv2 obligations are not replaced by this GPLv3 grant. Proprietary Sony/Valve files remain external user-obtained prerequisites where applicable, not GPL-covered components. No Sony DLL is included in the published Mesa release. Hardware CAD, PCB designs and manufacturing files are outside this scope and need a separate license decision if released.
 
