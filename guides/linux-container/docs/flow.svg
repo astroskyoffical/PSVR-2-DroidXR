@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="430" viewBox="0 0 1040 430" role="img" aria-labelledby="title desc">
+  <title id="title">PSVR2 Linux-container route on a RedMagic phone</title>
+  <desc id="desc">Droidspaces hosts Ubuntu ARM64. A Linux app or desktop sends frames through Monado and custom Mesa to PSVR2. Android HWC retains the card0 master and internal phone screen, and the lease broker passes display control to Mesa using file descriptor 3. PSVR2 USB and Sense inputs reach the Linux driver bridge and Monado. This describes the recovered route, not a newly repeated test.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#111" /></marker></defs>
+  <rect width="1040" height="430" fill="#fff" />
+  <g fill="#fff" stroke="#111" stroke-width="2">
+    <rect x="20" y="45" width="170" height="95" rx="8" />
+    <rect x="225" y="45" width="170" height="95" rx="8" />
+    <rect x="430" y="45" width="170" height="95" rx="8" />
+    <rect x="635" y="45" width="170" height="95" rx="8" />
+    <rect x="840" y="45" width="180" height="95" rx="8" />
+    <rect x="20" y="275" width="170" height="95" rx="8" />
+    <rect x="225" y="275" width="170" height="95" rx="8" />
+    <rect x="430" y="275" width="170" height="95" rx="8" />
+    <rect x="840" y="275" width="180" height="95" rx="8" />
+  </g>
+  <g fill="#111" font-family="Arial, sans-serif" text-anchor="middle">
+    <text x="520" y="25" font-size="20" font-weight="bold" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Recovered Linux-container route</text>
+    <g font-size="18" font-weight="bold">
+      <text x="105" y="80" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Droidspaces</text><text x="310" y="80" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Linux app</text>
+      <text x="515" y="80" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Monado</text><text x="720" y="80" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Custom Mesa</text><text x="930" y="80" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">PSVR2</text>
+      <text x="105" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Phone screen</text><text x="310" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Android HWC</text>
+      <text x="515" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Lease broker</text><text x="930" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">USB / Sense</text>
+    </g>
+    <g font-size="15">
+      <text x="105" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Ubuntu ARM64</text><text x="310" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">or desktop panel</text>
+      <text x="515" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">OpenXR compositor</text><text x="720" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Turnip + lease FD</text><text x="930" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">DisplayPort output</text>
+      <text x="105" y="338" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">stays with Android</text><text x="310" y="338" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">card0 master</text>
+      <text x="515" y="338" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">SCM_RIGHTS → FD 3</text><text x="930" y="338" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Linux driver bridge</text>
+      <text x="693" y="176" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">display authority</text><text x="708" y="235" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">tracking / input</text>
+      <text x="520" y="412" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">Shared Android kernel · device-specific DSC module · build/source gates remain open</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M190 92 H222" /><path d="M395 92 H427" /><path d="M600 92 H632" /><path d="M805 92 H837" />
+    <path d="M225 323 H193" /><path d="M395 323 H427" />
+    <path d="M515 275 V190 H720 V143" />
+    <path d="M930 275 V215 H570 V143" />
+  </g>
+  <g fill="#111">
+    <path d="M222 92 l-10 -5 v10 Z" /><path d="M427 92 l-10 -5 v10 Z" />
+    <path d="M632 92 l-10 -5 v10 Z" /><path d="M837 92 l-10 -5 v10 Z" />
+    <path d="M193 323 l10 -5 v10 Z" /><path d="M427 323 l-10 -5 v10 Z" />
+    <path d="M720 143 l-5 10 h10 Z" /><path d="M570 143 l-5 10 h10 Z" />
+  </g>
+</svg>

@@ -1,0 +1,335 @@
+{
+  "manifest_version": 1,
+  "as_of": "2026-10-14",
+  "release_status": "Documentation and identities only; complete fresh installation remains gated.",
+  "basis": "Preserved baseline and owner-supplied read-only file/configuration inventory; no release-review live session.",
+  "platform": {
+    "phone": "NX809J / RedMagic",
+    "android_version": 16,
+    "android_api": 36,
+    "host_architecture_report": "aarch64",
+    "kernel": "6.12.23-android16-OP-WILD",
+    "container_distribution": "Ubuntu",
+    "container_version": "26.04 LTS",
+    "container_codename": "Resolute Raccoon",
+    "container_package_architecture": "arm64",
+    "container_label": "AnLandKDE",
+    "rootfs_image_origin": null,
+    "rootfs_image_sha256": null,
+    "rootfs_distribution_identity_is_not_image_provenance": true
+  },
+  "droidspaces": {
+    "official_source": "https://github.com/ravindu644/Droidspaces-OSS",
+    "official_site": "https://www.droidspaces.org/",
+    "reference_release": "https://github.com/ravindu644/Droidspaces-OSS/releases/tag/v6.3.0",
+    "reference_tag_commit": "cd95a6fba4ad823c6bac94953cdb7ff4756fb420",
+    "recorded_android_app_version": "6.3.0",
+    "recorded_android_app_version_code": 6300,
+    "recorded_backend_sha256": "3538a2b7a174efaa1c9295617c2764adba01c1594254949437d2fa52ab69b5df",
+    "backend_source_to_binary_match": "unverified",
+    "payload_included": false
+  },
+  "container_settings": {
+    "rootfs_path": "/data/local/Droidspaces/Containers/AnLandKDE/rootfs",
+    "enable_android_storage": 0,
+    "enable_termux_x11": 0,
+    "enable_virgl": 0,
+    "enable_pulseaudio": 0,
+    "enable_hw_access": 1,
+    "enable_gpu_mode": 1,
+    "selinux_permissive": 0,
+    "custom_init": "/root/desktop-doctor/bin/desktop-doctor-container-init.sh",
+    "environment_file": "/data/local/Droidspaces/Containers/AnLandKDE/desktop-doctor.env",
+    "mesa_loader_driver_override": "kgsl"
+  },
+  "linkdoctor": {
+    "package": "com.anland.linkdoctor.next",
+    "version_name": "1.0.0-preview",
+    "version_code": 100,
+    "min_sdk": 29,
+    "target_sdk": 35,
+    "bytes": 111265,
+    "sha256": "d9d12d6dd3e2e55ad50eb98d2437a7ab9e32da132756ad340e6427c90a6338a9",
+    "signature": {
+      "verification": "apksigner exit 0; v3 signature verified",
+      "certificate_sha256": "c3f3583cf6b17af79949282d33d95c4b229cd168452b1630cae4701b0cf51acc"
+    },
+    "source_match": "Packaged helper assets match saved source; installed classes.dex differs from current local build.",
+    "local_dist_apk_sha256": "da1d1c9e33aed515fa25b29d606b30b32ab3307da453fc23a98249d168b7280a",
+    "availability": {
+      "payload_included": false,
+      "download_available_from_this_package": false,
+      "reason": "Installed source/build identity, explicit license and notices unresolved."
+    }
+  },
+  "production_dsc": {
+    "path": "/data/adb/modules/psvr2_dsc/psvr2_dsc.ko",
+    "bytes": 194592,
+    "sha256": "6480f47d83f20b65a9f14ad052f54645ca1b14e5810247595174b3cb93d2c54f",
+    "saved_configuration": {
+      "enabled": true,
+      "bpp": 10,
+      "slice_height": 120,
+      "target_mode": "4000x2040@120"
+    },
+    "corresponding_source": null,
+    "availability": {
+      "payload_included": false,
+      "download_available_from_this_package": false,
+      "reason": "Matching production source/build/notices unrecovered; experimental source cannot substitute."
+    }
+  },
+  "monado": {
+    "install_prefix": "/opt/psvr2/runtime/monado-ign",
+    "files": [
+      {
+        "path": "/opt/psvr2/runtime/monado-ign/bin/monado-service",
+        "sha256": "3ef24813359089b851d399f08c817fd3db33e9b11c670921a15d86041d476cb7",
+        "bytes": null
+      },
+      {
+        "path": "/opt/psvr2/runtime/monado-ign/lib/libopenxr_monado.so",
+        "sha256": "05dd1cc81f0437653f3ded4e6f2708fc04c78112809d53ac4216b8ca164cf9f3",
+        "bytes": null
+      },
+      {
+        "path": "/opt/psvr2/runtime/monado-ign/lib/libmonado.so.25.1.0",
+        "sha256": "fdb25e5ddb235ce21f4886ba869402200e2ae9534058227bda040fc646819c6b",
+        "bytes": null
+      },
+      {
+        "path": "/opt/psvr2/runtime/monado-ign/share/openxr/1/openxr_monado.json",
+        "sha256": "a6fe164702281f786bcc9c3a4e1951d8fedade04bd56570ce503c6f62ebee538",
+        "bytes": null
+      }
+    ],
+    "source_directory_observed": "/opt/psvr2/src/monado-7b5894b",
+    "source_revision": null,
+    "source_revision_status": "Named directory exists; .git/HEAD absent; output/source binding unverified.",
+    "build_directory": {
+      "path": "/opt/psvr2/build/monado-7b5894b",
+      "presence": "unverified, recipe-derived"
+    },
+    "availability": {
+      "payload_included": false,
+      "download_available_from_this_package": false,
+      "reason": "Exact modified source, patchset, build options, dependencies and notices not bound to deployed outputs."
+    }
+  },
+  "mesa": {
+    "historical_custom_label": "26.2-devel / c4365a5a09; not a verified source commit",
+    "source_directory_observed": "/home/astrosky/vr-mods/turnip-gmemfix/mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4",
+    "source_revision": null,
+    "source_revision_status": "Named directory exists; .git/HEAD absent; output/source binding unverified.",
+    "libraries": [
+      {
+        "path": "/home/astrosky/vr-mods/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
+        "sha256": "13f03707c59a9577813b7531e86861272ef9654017141e6e927e146505d26f8e",
+        "bytes": null,
+        "active_process_mapping_verified": false
+      },
+      {
+        "path": "/home/astrosky/vr-mods/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
+        "sha256": "248cd58786c7a4bc0fef6242bf97c6ef984621caeada7af6f39b618e2ee4f5dc",
+        "bytes": null,
+        "active_process_mapping_verified": false
+      }
+    ],
+    "selected_icds": [
+      {
+        "path": "/home/astrosky/vr-mods/turnip-gmemfix/icd/freedreno_icd.kms-priority-20261010.aarch64.json",
+        "sha256": "2dbb267eda382c0c7ffd63010f8a93827f1766a8610f4df81ee8b864d4a2aaff",
+        "library_path": "/home/astrosky/vr-mods/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
+        "api_version_declared": "1.4.353",
+        "library_arch_declared": "64"
+      },
+      {
+        "path": "/home/astrosky/vr-mods/turnip-kgsl-timeout-c4365a5/icd/freedreno_icd.kgsl-timeout.aarch64.json",
+        "sha256": null,
+        "library_path": "/home/astrosky/vr-mods/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
+        "api_version_declared": "1.4.353",
+        "library_arch_declared": "64"
+      }
+    ],
+    "distro_packages_are_separate": [
+      {
+        "package": "libegl-mesa0",
+        "version": "26.0.3-1ubuntu1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "libgl1-mesa-dri",
+        "version": "26.0.3-1ubuntu1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "mesa-libgallium",
+        "version": "26.0.3-1ubuntu1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "libgbm1",
+        "version": "26.0.3-1ubuntu1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "libdrm-freedreno1",
+        "version": "2.4.131-1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "libdrm2",
+        "version": "2.4.131-1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "libvulkan1",
+        "version": "1.4.341.0-1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "libllvm21",
+        "version": "1:21.1.8-6ubuntu1",
+        "architecture": "arm64"
+      },
+      {
+        "package": "vulkan-tools",
+        "version": "1.4.341.0+dfsg1-1",
+        "architecture": "arm64"
+      }
+    ],
+    "availability": {
+      "payload_included": false,
+      "download_available_from_this_package": false,
+      "reason": "Exact modified sources, build mapping and per-component notices unresolved."
+    }
+  },
+  "recovered_scripts": [
+    {
+      "path": "/data/local/tmp/psvr2/psvr2.sh",
+      "sha256": "9272b8a6a69147c1b1923b3284d60204150efa2e15a39baa5e3672aa245848a"
+    },
+    {
+      "path": "/root/psvr2/psvr2-c.sh",
+      "sha256": "872929081a410138fc5c1d741da3e3832c135a9e967fc4cb2fa8454fc49cbea7"
+    },
+    {
+      "path": "/root/psvr2/psvr2-monado.sh",
+      "sha256": "dd3cbdb1506617e6b972bbd849e76d25dbffb98fe2f6c1b9d1d6beb636f7b5c1"
+    },
+    {
+      "path": "/root/psvr2/build-monado-ign.sh",
+      "sha256": "0e8c2bd4bef50e55bde83761fe72b2908f2be885b3dcffd8735144b3fe1e9106"
+    }
+  ],
+  "launchers_availability": {
+    "payload_included": false,
+    "download_available_from_this_package": false,
+    "reason": "License/build resolution and complete prior-state restoration required before redistribution."
+  },
+  "drm_lease": {
+    "recovered_source_sha256": "ca202a1f906f69a1edec2fec17f6e3932021b359ef8253ea61993cc900914ff6",
+    "lessor": "Android composer/HWC holding card0 master",
+    "card": "/dev/dri/card0",
+    "render_node_in_desktop_recipe": "/dev/dri/renderD128",
+    "master_borrowing": "pidfd_open + pidfd_getfd",
+    "object_selection": "Connected DisplayPort connector, compatible CRTC, explicit planes or two free primary planes",
+    "full_selected_connector_crtc_plane_tuple": null,
+    "historical_plane_file": [
+      97,
+      129
+    ],
+    "historical_plane_ids_are_not_portable": true,
+    "fd_transport": "AF_UNIX SOCK_STREAM; SCM_RIGHTS; dup2 to FD 3",
+    "consumer_environment": {
+      "TU_KGSL_DISPLAY_FD": "3",
+      "WSI_DISPLAY_SPLIT": "1"
+    },
+    "consumer": "Monado and custom Turnip VK_KHR_display",
+    "stop": "Broker signal handler revokes lease and unlinks socket; host cleanup restores external logical display.",
+    "source_limits": "Hardcoded card0/rootfs; socket mode0666/no peer credentials; lessor retains authority.",
+    "availability": {
+      "payload_included": false,
+      "download_available_from_this_package": false,
+      "reason": "Broker binary/source/license binding unresolved; historical device-specific implementation only."
+    }
+  },
+  "optional_alyx_jailbreak": {
+    "identity": "Alyx Jailbreak",
+    "version": "0.183",
+    "build": 2140,
+    "author_release": "https://github.com/alferiko/alyx-jailbreak-releases/releases/tag/v0.183",
+    "reference_filename": "Alyx-Jailbreak-0.183.apk",
+    "reference_bytes": 295708829,
+    "reference_sha256": "a631d8e7208a165f7b6e011eeb2105957ea87256f199d8f0a94f09b5c80d2b28",
+    "scope": "Optional separate Android compatibility experiment; original identity/credits retained, not a core dependency.",
+    "payload_included": false,
+    "redistribution_rights_verified": false,
+    "immersive_psvr2_compatibility_certified_by_this_inventory": false
+  },
+  "source_candidates_not_deployed_binary_matches": [
+    {
+      "name": "Ignition",
+      "upstream": "https://github.com/BnuuySolutions/Ignition",
+      "local_candidate_commit": "2f7d10c5f9192990a8287213cf6628cfee84ef98",
+      "candidate_license": "MIT"
+    },
+    {
+      "name": "PSVR2Toolkit",
+      "upstream": "https://github.com/BnuuySolutions/PSVR2Toolkit",
+      "local_candidate_commit": "5daea3856fda4399bbe61b7f9bc872ea7b321a43",
+      "candidate_license": "MIT",
+      "qualification": "README separately states noncommercial intent; preserve and clarify its scope, do not override license terms by inference."
+    },
+    {
+      "name": "WayVR",
+      "upstream": "https://github.com/wayvr-org/wayvr",
+      "local_candidate_commit": "82565e975f86d4f1b17ef1af32834d288556639e",
+      "candidate_license": "GPL-3.0"
+    },
+    {
+      "name": "OpenComposite Skyrim fork",
+      "upstream": "https://github.com/Wondernuttz/Open-Composite-Unleashed-for-Skyrim-VR",
+      "local_candidate_commit": null,
+      "candidate_license": "GPL-3.0",
+      "qualification": "No independent local git metadata; not established as deployed route source."
+    }
+  ],
+  "recorded_optional_translation_package_metadata": [
+    {
+      "name": "Proton 11 ARM64",
+      "steam_app_id": 4628740,
+      "recorded_build_id": 25118360,
+      "payload_sha256": null,
+      "deployed_binary_source_match": "unverified"
+    },
+    {
+      "name": "Steam Linux Runtime 4.0 ARM64",
+      "steam_app_id": 4185400,
+      "recorded_build_id": 24599775,
+      "payload_sha256": null,
+      "deployed_binary_source_match": "unverified"
+    }
+  ],
+  "known_restore_gap": "Historical launcher denies GameAssist overlay app-op and does not restore its prior value on off.",
+  "remaining_evidence": [
+    "Production DSC matching source, build configuration and notices.",
+    "Custom Mesa and Monado exact modifications/build-to-output provenance and notice closure.",
+    "ELF architecture/dependency/build-ID evidence; first private retrieval denied, none copied.",
+    "Installed LinkDoctor matching Java/source-build identity and license.",
+    "Rootfs image origin/digest/recipe and package-source notices.",
+    "Exact deployed bridge, Wine/Proton, WayVR/shim and OpenComposite identities.",
+    "Full actual PSVR2 lease object tuple and controlled complete restore receipt."
+  ],
+  "excluded_payloads": [
+    "APKs",
+    "kernel modules",
+    "runtime/graphics binaries",
+    "rootfs images",
+    "Sony/Valve drivers or assets",
+    "game files",
+    "private logs/configuration",
+    "signing keys",
+    "room maps/calibration data"
+  ]
+}
