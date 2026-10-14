@@ -44,3 +44,25 @@ code{padding:.12em .35em;border:1px solid #dedede;border-radius:4px;background:#
 
 .mission-invitation{width:min(560px,calc(100% - 36px))}.mission-invitation h2{font-size:29px;line-height:1.3;letter-spacing:-.025em}.arrival-dialog{overflow:auto}.mission-invitation .note-label{max-width:100%}
 @media(max-width:600px){.mission-invitation{padding:26px}.mission-invitation h2{font-size:25px}.arrival-dialog{font-size:16px}.mission-invitation .invitation-actions{gap:10px}}
+
+/* A finite, monochrome arrival scene. Controls stay clear throughout the reveal. */
+.mission-invitation{inset:0;margin:0;width:100%;max-width:none;height:100%;max-height:none;padding:40px 26px;border:0;border-radius:0;background:#080808;box-shadow:none;overflow:auto}
+.mission-invitation[open]{display:flex}.mission-invitation::backdrop{background:#0006}
+#mission-vapor{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.mission-card{position:relative;z-index:1;width:min(620px,100%);margin:auto}.mission-prose{animation:mission-resolve 2.2s cubic-bezier(.2,.65,.3,1) both}
+.mission-invitation .note-label{max-width:100%;background:transparent;color:#aaa;box-shadow:none;border:0;padding:0;margin-bottom:24px;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+.mission-invitation .mission-card h2{font-size:clamp(30px,4vw,46px);line-height:1.16;letter-spacing:-.035em;padding:0;margin:0 0 27px;font-weight:500;color:#eee}
+.mission-invitation .mission-card p:not(.note-label){font-size:18px;line-height:1.75;color:#c7c7c7;margin-bottom:22px}.mission-invitation .invitation-actions{margin-top:32px}.mission-invitation .invitation-close{position:fixed;right:22px;top:20px;z-index:2}
+.mission-invitation.is-leaving{animation:mission-surface-out 1.7s ease both}.mission-invitation.is-leaving::backdrop{animation:mission-backdrop-out 1.7s ease both}.is-leaving .mission-prose{animation:mission-dissolve 1.4s ease-in both}.is-leaving .invitation-actions,.is-leaving .invitation-close{animation:mission-simple-out .28s ease both}
+.mission-invitation.is-skipping{animation:mission-simple-out .18s ease both}.mission-invitation.is-skipping::backdrop{animation:mission-backdrop-out .18s ease both}.is-skipping .mission-prose{animation:none}
+@keyframes mission-resolve{0%{opacity:0;filter:blur(9px);transform:translateY(10px)}45%{opacity:.8;filter:blur(2px)}100%{opacity:1;filter:blur(0);transform:none}}
+@keyframes mission-dissolve{0%{opacity:1;filter:blur(0);transform:none}45%{opacity:.55;filter:blur(2px)}100%{opacity:0;filter:blur(9px);transform:translate(12px,-18px)}}
+@keyframes mission-surface-out{from{background-color:#080808}to{background-color:rgba(8,8,8,0)}}
+@keyframes mission-backdrop-out{to{background-color:transparent}}
+@keyframes mission-simple-in{from{opacity:0}to{opacity:1}}
+@keyframes mission-simple-out{to{opacity:0}}
+.motion-off .mission-prose{animation:mission-simple-in .18s ease both}.motion-off #mission-vapor{display:none}.motion-off .mission-invitation.is-leaving{animation:mission-simple-out .18s ease both}.motion-off .is-leaving .mission-prose{animation:none}
+@media(prefers-reduced-motion:reduce){.mission-prose{animation:mission-simple-in .18s ease both}#mission-vapor{display:none}.mission-invitation.is-leaving{animation:mission-simple-out .18s ease both}.is-leaving .mission-prose{animation:none}}
+@media(max-width:600px){.mission-invitation{padding:72px 25px 36px}.mission-invitation .mission-card h2{font-size:31px;margin-bottom:22px}.mission-invitation .mission-card p:not(.note-label){font-size:16px;line-height:1.7}.mission-invitation .note-label{font-size:11px;margin-bottom:21px}.mission-invitation .invitation-actions{margin-top:26px}.mission-invitation .invitation-close{right:15px;top:14px}}
+.ivry-acknowledgment{margin:26px 0;padding:20px 0 6px;border-top:1px solid #777;border-bottom:1px solid #555}.ivry-acknowledgment h3{font-size:23px;line-height:1.4;font-weight:500;margin:0 0 16px}.ivry-acknowledgment p{font-size:17px}
+.emblem-scan{opacity:calc(.12 + var(--logo-flash)*.12)}.emblem-unlocked{stroke-linejoin:miter}

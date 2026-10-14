@@ -14,6 +14,10 @@ const videoSound = document.querySelector('#demo-sound');
 const emblem = document.querySelector('#emblem-control');
 const invitation = document.querySelector('#sound-invitation');
 const missionInvitation = document.querySelector('#mission-invitation');
+const missionProse = missionInvitation.querySelector('.mission-prose');
+const missionCanvas = document.querySelector('#mission-vapor');
+const missionContext = missionCanvas.getContext('2d');
+let missionOpenedAt = 0, missionExitAt = 0, missionExitTimer = 0, missionDust = [];
 let audioContext, analyser, bins;
 const sources = new WeakMap();
 let beats = [], drops = [], lastBeat = -1, lastDrop = -1;
@@ -195,6 +199,7 @@ function frame(now) {
   surfaceGlow += (glowTarget - surfaceGlow) * (1 - Math.exp(-elapsed / (glowTarget > surfaceGlow ? .08 : .32)));
   setSignal(lowEnd, drop, flash, surfaceGlow);
   paint(sceneTime, lowEnd, kick, drop);
+  paintMission(now);
   frameId = requestAnimationFrame(frame);
 }
 
@@ -214,9 +219,9 @@ function setMotion(value) {
 }
 
 function musicBlocked() {
-  sound.textContent = 'Enable music';
-  sound.setAttribute('aria-label', 'Enable optional soundtrack at half volume');
-  status.textContent = 'Your browser needs a click to start music. Choose Enable music.';
+  sound.textContent = 'Enable sound';
+  sound.setAttribute('aria-label', 'Enable optional sound at half volume');
+  status.textContent = 'Your browser needs a click to start sound. Choose Enable sound.';
 }
 sound.addEventListener('click', () => {
   restoreMusic = false;
@@ -231,21 +236,21 @@ audio.addEventListener('play', () => {
   if (videoAudible()) video.muted = true;
   analyse(audio);
   sound.textContent = 'Pause sound';
-  sound.setAttribute('aria-label', 'Pause optional soundtrack');
-  status.textContent = 'Music is playing. Bokeh follows bass; the emblem follows stronger inferred beats.';
+  sound.setAttribute('aria-label', 'Pause optional sound');
+  status.textContent = 'Sound is playing. Bokeh follows bass; the emblem follows stronger inferred beats.';
   waiting = false;
   start();
 });
 function paused() {
-  sound.textContent = 'Sound off'; sound.setAttribute('aria-label', 'Play optional soundtrack');
-  status.textContent = audio.ended ? 'The mix has ended.' : 'Music paused. The journal remains available.';
+  sound.textContent = 'Sound off'; sound.setAttribute('aria-label', 'Play optional sound');
+  status.textContent = audio.ended ? 'Playback ended.' : 'Sound paused. The journal remains available.';
 }
 audio.addEventListener('pause', paused); audio.addEventListener('ended', paused);
 audio.addEventListener('waiting', () => { waiting = true; });
 audio.addEventListener('playing', () => { waiting = false; });
 audio.addEventListener('seeking', () => { seeking = true; });
 audio.addEventListener('seeked', () => { seeking = false; resetCues(); });
-audio.addEventListener('error', () => { status.textContent = 'The optional mix could not load. You can still read the journal.'; });
+audio.addEventListener('error', () => { status.textContent = 'Sound could not load. You can still read the journal.'; });
 mute.addEventListener('click', () => { audio.muted = !audio.muted; });
 audio.addEventListener('volumechange', () => {
   if (audio.muted || audio.volume === 0) saveSoundChoice('silent');
@@ -373,18 +378,95 @@ function closeInvitation() {
 }
 function showMission() {
   if (missionSeen) return false;
+  missionOpenedAt = performance.now();
+  missionInvitation.dataset.phase = 'revealing';
   missionInvitation.showModal();
   document.querySelector('#mission-explore').focus({ preventScroll: true });
   return true;
 }
-function finishMission() {
-  missionSeen = true;
-  try { sessionStorage.setItem('droidxr-mission-seen', '1'); } catch {}
+// Decorative vapor shares the existing 30 fps loop, capped at 1x pixels. No extra loop.
+function paintMission(now) {
+  if (!missionInvitation.open || !missionContext) return;
+  const exiting = missionExitAt > 0;
+  const age = (now - (exiting ? missionExitAt : missionOpenedAt)) / 1000;
+  if (!exiting && age >= 3.2) { if (missionCanvas.width) missionCanvas.width = missionCanvas.height = 0; return; }
+  const w = innerWidth, h = innerHeight;
+  if (missionCanvas.width !== w || missionCanvas.height !== h) { missionCanvas.width = w; missionCanvas.height = h; }
+  missionContext.clearRect(0, 0, w, h);
+  const life = exiting ? clamp(age / 1.7, 0, 1) : clamp(age / 3.2, 0, 1);
+  if ((!exiting && life === 1) || missionInvitation.classList.contains('is-skipping')) return;
+  const mist = exiting ? Math.sin(life * Math.PI) * .28 : Math.sin(life * Math.PI) * .13;
+  for (let i = 0; i < (w < 600 ? 4 : 7); i++) {
+    const x = w * (.27 + i * .083) + Math.sin(i * 2.3 + age * .3) * 46;
+    const y = h * (.32 + (i % 3) * .15) - age * (exiting ? 32 : 10);
+    const radius = (w < 600 ? 65 : 105) + age * 18;
+    missionContext.globalAlpha = mist;
+    missionContext.drawImage(orb, x - radius * 1.5, y - radius * .55, radius * 3, radius * 1.1);
+  }
+  for (const p of missionDust) {
+    const spread = life * life;
+    missionContext.globalAlpha = Math.sin(Math.min(1, life * 3) * Math.PI / 2) * (1 - life) * .7;
+    missionContext.fillStyle = '#dedede';
+    missionContext.fillRect(p.x + p.dx * spread + Math.sin(age * 2 + p.phase) * life * 9, p.y - p.dy * spread, p.radius, p.radius * 1.5);
+  }
+  missionContext.globalAlpha = 1;
+}
+function seedMissionDust() {
+  missionDust = [];
+  const walker = document.createTreeWalker(missionProse, NodeFilter.SHOW_TEXT);
+  const range = document.createRange(), limit = innerWidth < 600 ? 76 : 140;
+  let node;
+  // Sample actual text positions once on departure; no per-frame DOM measurements.
+  while ((node = walker.nextNode()) && missionDust.length < limit) {
+    for (let i = 0; i < node.length && missionDust.length < limit; i += 4) {
+      if (!node.data[i].trim()) continue;
+      range.setStart(node, i); range.setEnd(node, i + 1);
+      const rect = range.getBoundingClientRect(), n = missionDust.length;
+      if (rect.bottom < 0 || rect.top > innerHeight) continue;
+      missionDust.push({ x: rect.left + rect.width / 2, y: rect.top + rect.height * .55, dx: 20 + (n * 17 % 92), dy: 28 + (n * 13 % 106), phase: n * 1.9, radius: .6 + (n % 5) * .18 });
+    }
+  }
+  missionCanvas.dataset.particles = String(missionDust.length);
+}
+function closeMission() {
+  clearTimeout(missionExitTimer); missionExitTimer = 0; missionExitAt = 0; missionDust = [];
+  missionContext?.clearRect(0, 0, missionCanvas.width, missionCanvas.height);
+  missionCanvas.width = missionCanvas.height = 0;
+  missionCanvas.dataset.particles = '0';
   missionInvitation.close();
+  missionInvitation.classList.remove('is-leaving', 'is-skipping');
+  missionInvitation.dataset.phase = 'complete';
   document.querySelector('#hero-title').focus({ preventScroll: true });
 }
-for (const id of ['mission-explore', 'mission-skip', 'mission-close']) document.getElementById(id).addEventListener('click', finishMission);
-missionInvitation.addEventListener('cancel', event => { event.preventDefault(); finishMission(); });
+function finishMission(vapor = true) {
+  if (missionExitTimer) { closeMission(); return; }
+  missionSeen = true;
+  try { sessionStorage.setItem('droidxr-mission-seen', '1'); } catch {}
+  const animate = vapor && enabled && !reduced.matches;
+  missionInvitation.dataset.phase = 'leaving';
+  missionInvitation.dataset.effect = animate ? 'vapor' : 'fade';
+  if (animate) seedMissionDust();
+  else missionInvitation.classList.add('is-skipping');
+  missionExitAt = performance.now();
+  missionInvitation.classList.add('is-leaving');
+  // A fixed deadline also closes if CSS animations are unavailable or interrupted.
+  missionExitTimer = setTimeout(closeMission, animate ? 1700 : 180);
+}
+document.querySelector('#mission-explore').addEventListener('click', () => finishMission());
+for (const id of ['mission-skip', 'mission-close']) document.getElementById(id).addEventListener('click', () => finishMission(false));
+missionInvitation.addEventListener('cancel', event => { event.preventDefault(); finishMission(false); });
+// A browser can close a dialog directly, including repeated Escape requests.
+missionInvitation.addEventListener('close', () => {
+  if (missionInvitation.dataset.phase === 'complete') return;
+  missionSeen = true;
+  try { sessionStorage.setItem('droidxr-mission-seen', '1'); } catch {}
+  closeMission();
+});
+missionProse.addEventListener('animationend', event => {
+  if (event.animationName === 'mission-resolve' || event.animationName === 'mission-simple-in') missionInvitation.dataset.phase = 'ready';
+});
+reduced.addEventListener('change', () => { if (reduced.matches && missionExitTimer) closeMission(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && missionExitTimer) closeMission(); });
 function continueSilently() {
   restoreMusic = false;
   audio.pause(); saveSoundChoice('silent');

@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#080808">
   <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
   <title>DroidXR - VR on your terms</title>
-  <link rel="stylesheet" href="styles.css?v=journal-11">
-  <script type="module" src="app.mjs?v=journal-11"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-12">
+  <script type="module" src="app.mjs?v=journal-12"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
@@ -15,27 +15,36 @@
     <button id="sound-close" class="invitation-close" type="button" aria-label="Close and continue silently">&#215;</button>
     <p class="note-label">A little atmosphere</p>
     <h2 id="sound-title">Read with sound?</h2>
-    <p id="sound-description">The music brings the lights to life. Enable it at half volume, or keep reading silently. You can change your mind using the sound control.</p>
+    <p id="sound-description">Sound brings the lights to life. Enable it at half volume, or continue silently. Use the sound control to change it later.</p>
     <div class="invitation-actions"><button id="sound-approve" type="button" autofocus>Enable sound at 50%</button><button id="sound-decline" type="button">Continue silently</button></div>
   </dialog>
   <dialog id="mission-invitation" class="arrival-dialog mission-invitation" aria-labelledby="mission-title" aria-describedby="mission-description mission-scope">
     <button id="mission-close" class="invitation-close" type="button" aria-label="Close the mission introduction">&#215;</button>
+    <canvas id="mission-vapor" aria-hidden="true"></canvas>
+    <div class="mission-card">
+      <div class="mission-prose">
     <p class="note-label">A starting point for more open VR</p>
     <h2 id="mission-title">Help change what standalone VR can be.</h2>
     <p id="mission-description">DroidXR starts with a working PSVR 2 route powered by an Android phone. I want to turn that into VR people can run, understand and improve on hardware they choose.</p>
     <p id="mission-scope">If you build drivers, OpenXR apps, or have another headset to explore, come help. Wider headset support is an experiment we can build together, with each new device still needing its own work and testing.</p>
+      </div>
     <div class="invitation-actions"><button id="mission-explore" type="button" autofocus>Explore the project</button><button id="mission-skip" type="button">Skip introduction</button></div>
+    </div>
   </dialog>
-  <button id="emblem-control" class="hacker-emblem" type="button" aria-label="Floating DroidXR emblem. Drag to move, click to nudge, arrow keys to move, Home to reset." title="Drag to move · Click to nudge · Arrow keys move · Home resets">
-    <svg viewBox="0 0 220 230" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <button id="emblem-control" class="hacker-emblem" type="button" aria-label="DroidXR: your hardware, your rules. An open lock and VR visor. Drag to move, click to nudge, arrow keys to move, Home to reset." title="Your hardware. Your rules. · Drag to move · Click to nudge · Arrow keys move · Home resets">
+    <svg viewBox="0 0 220 252" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs><linearGradient id="emblem-metal" x1="47" y1="58" x2="177" y2="143" gradientUnits="userSpaceOnUse"><stop stop-color="#eee"/><stop offset=".5" stop-color="#777"/><stop offset="1" stop-color="#ddd"/></linearGradient></defs>
       <g class="emblem-orbit" stroke="currentColor"><path d="M39 71a77 77 0 0 1 142 0M39 131a77 77 0 0 0 142 0"/><path d="M110 17v10M110 175v10M25 101h10M185 101h10M50 41l7 7M163 154l7 7M50 161l7-7M163 48l7-7"/></g>
       <path d="M49 80Q52 58 78 57h64q26 1 29 23l-4 38q-2 18-20 19h-24l-13-12-13 12H73q-18-1-20-19Z" fill="#101010" stroke="url(#emblem-metal)" stroke-width="2"/>
       <path d="M57 79q23-15 53-8 30-7 53 8l-5 32q-17 14-35 6l-13-10-13 10q-18 8-35-6Z" fill="#191919" stroke="#888"/>
       <g class="emblem-eyes" stroke="currentColor" stroke-width="1.6"><ellipse cx="83" cy="94" rx="17" ry="15"/><ellipse cx="137" cy="94" rx="17" ry="15"/><path d="M83 84v20M73 94h20M137 84v20M127 94h20"/></g>
-      <path d="M75 50q35-18 70 0M47 85h-7v25h8M173 85h7v25h-8M96 145h28" stroke="url(#emblem-metal)" stroke-width="2"/>
+      <path class="emblem-unlocked" d="M83 57V40c0-18 13-30 31-30s31 12 31 30M141 44l10 5M146 34l10 5" stroke="url(#emblem-metal)" stroke-width="2.5" stroke-linecap="square"/>
+      <path class="emblem-scan" d="M66 80h89M63 87h95M62 103h96M66 111h88" stroke="currentColor" stroke-width=".7"/>
+      <path d="M47 85h-7v25h8M173 85h7v25h-8M96 145h28" stroke="url(#emblem-metal)" stroke-width="2"/>
+      <circle cx="110" cy="120" r="2.2" fill="currentColor"/><path d="M110 122v6" stroke="currentColor" stroke-width="1.5"/>
       <text x="110" y="200" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="17" letter-spacing="3">DROIDXR</text>
-      <text x="110" y="220" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="8" letter-spacing="2.4">TRUE HACKER</text>
+      <text x="110" y="223" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="10" letter-spacing="1.6">YOUR HARDWARE.</text>
+      <text x="110" y="241" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="10" letter-spacing="1.6">YOUR RULES.</text>
     </svg>
   </button>
   <header class="page-header">
@@ -82,6 +91,11 @@
         <li><strong>Give an application a way in.</strong> <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a> is the shared interface between a compatible app and the runtime: ask for movement, render the views, submit the frames. Each headset still needs its own hardware support underneath it.</li>
       </ol>
       <p>This is where "just use the phone" turns into driver work. The newer native Android route is being built to handle the headset directly through Android's USB, graphics and app lifecycle, without depending on the Linux-container driver bridge. It has reached an image and head-follow checkpoint; it still needs steadier presentation and repeatable testing.</p>
+      <aside class="ivry-acknowledgment" aria-labelledby="ivry-credit-title">
+        <h3 id="ivry-credit-title">The DSC breakthrough builds on iVRy's research.</h3>
+        <p>Without <a href="https://store.steampowered.com/app/1021000/BETA_iVRy_Driver_for_SteamVR_PSVR2_Premium_Edition/" target="_blank" rel="noreferrer">iVRy's research and shared findings</a>, I would not have understood the PSVR2's DSC requirements or got this part working. His PSVR2 reverse-engineering and shared Display Stream Compression findings helped me understand the display link this project needed.</p>
+        <p>The Android app and phone-specific implementation are this project's work. This credit does not imply iVRy's endorsement or that his proprietary code is included.</p>
+      </aside>
       <div class="target-paths" aria-label="Two intended ways to use the phone-hosted runtime">
         <p><span>Local experiences</span> Phone runs a compatible experience <i aria-hidden="true">&#8594;</i> PSVR 2</p>
         <p><span>PC streaming / planned</span> PC <i aria-hidden="true">&#8594;</i> wireless link <i aria-hidden="true">&#8594;</i> phone <i aria-hidden="true">&#8594;</i> PSVR 2</p>
@@ -216,6 +230,8 @@
     <section class="project-links" id="credits">
       <p class="section-number">06 / Credits and the work behind it</p>
       <h2>A community project built on other people's work.</h2>
+      <p>DroidXR is an independent, noncommercial community project. It is not affiliated with, sponsored by or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their respective owners.</p>
+      <p>Forks and contributions are welcome. Keep AstroPC's credit and all upstream acknowledgments, and respect each component's own license. The license for this project's original work is being reviewed separately.</p>
       <p>DroidXR is an independent project by AstroPC. The route builds on <a href="https://github.com/ravindu644/Droidspaces-OSS" target="_blank" rel="noreferrer">Droidspaces</a>, <a href="https://monado.freedesktop.org/" target="_blank" rel="noreferrer">Monado</a>, <a href="https://www.mesa3d.org/" target="_blank" rel="noreferrer">Mesa and Turnip</a>, <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a>, <a href="https://github.com/BnuuySolutions/Ignition" target="_blank" rel="noreferrer">Ignition</a>, <a href="https://github.com/BnuuySolutions/PSVR2Toolkit" target="_blank" rel="noreferrer">PSVR2Toolkit</a> and their contributors. Their identities, credits and licenses stay with their work.</p>
       <p>The <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/optional-test-apps.md" target="_blank" rel="noreferrer">optional test-app notes</a> keep separate experiments and their original credits distinct from the core headset method. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/licenses-and-provenance.md" target="_blank" rel="noreferrer">Component notices and provenance</a> describe the distribution limits.</p>
       <p class="source-note">Written from my project notes, saved runtime guide, game tests and native Android research. The Skyrim recording and reports of how it feels are mine. Native test counts are from my supplied summary. Historical tests describe their own setup; this page does not read live headset data.</p>
@@ -224,16 +240,14 @@
     <footer><span>DroidXR / independent community research</span><a href="#project">Back to top &#8593;</a></footer>
   </main>
 
-  <aside class="sound-tools" aria-label="Optional soundtrack and motion">
+  <aside class="sound-tools" aria-label="Sound and motion">
     <div class="tool-row">
-      <button id="sound-toggle" type="button" aria-label="Play optional soundtrack">Sound off</button>
+      <button id="sound-toggle" type="button" aria-label="Play optional sound">Sound off</button>
       <button id="mute-toggle" type="button" aria-pressed="false">Mute</button>
       <button id="motion-toggle" type="button" role="switch" aria-checked="true">Motion on</button>
       <details id="audio-details"><summary aria-label="More audio controls">&#8943;</summary><div class="audio-panel">
-        <audio id="audio" controls preload="metadata" src="assets/mix.mp3" aria-label="Optional user-supplied music mix"></audio>
-        <p id="audio-status" aria-live="polite">Optional music starts at half volume when you enable it.</p>
-        <p class="credit">User-supplied mix: SPARTAN HARDSTYLE, JUMPSTYLE, HARDTEKK, DARK TRIAD, BP EDIT SONGS PLAYLIST. Individual artist details were not supplied.</p>
-        <p class="credit">Bokeh follows bass energy. The emblem pulses on stronger onset-aligned beat estimates; these are inferred cues, not manually verified timings.</p>
+        <audio id="audio" controls preload="metadata" src="assets/mix.mp3" aria-label="Optional sound"></audio>
+        <p id="audio-status" aria-live="polite">Sound starts at 50% when enabled.</p>
       </div></details>
     </div>
   </aside>

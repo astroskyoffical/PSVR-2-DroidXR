@@ -1,6 +1,18 @@
 # PSVR-2-DroidXR
 
-Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-11).
+Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-12).
+
+## Acknowledgment: iVRy's PSVR2 research
+
+Without iVRy's research and shared findings, I would not have understood the PSVR2's DSC requirements or got this part working. His PSVR2 reverse-engineering and shared Display Stream Compression findings helped make this project's display work possible. See [iVRy's official PSVR2 project](https://store.steampowered.com/app/1021000/BETA_iVRy_Driver_for_SteamVR_PSVR2_Premium_Edition/), developed by iVRy / Mediator Software.
+
+This project's Android app and phone-specific implementation are separate work. This acknowledgment does not imply iVRy's endorsement or inclusion of his proprietary code. Credit also remains with Droidspaces, Monado, Mesa/Turnip, Ignition, PSVR2Toolkit and their contributors.
+
+## Independent community project
+
+DroidXR is an independent, noncommercial community project. It is not affiliated with, sponsored by or endorsed by Sony Interactive Entertainment, Meta, Valve or other referenced platform vendors. Trademarks belong to their respective owners.
+
+Forks and contributions are welcome. Keep AstroPC's credit and all upstream acknowledgments. Each upstream component retains its own license; the project's community purpose does not replace those terms. The license for this project's original work is being reviewed separately.
 
 ## Linux-container method
 
