@@ -20,6 +20,7 @@ The grant also covers the original project-authored portions of these documentat
 - `README.md`
 - `LICENSE-SCOPE.md`
 - `NOTICE`
+- `guides/foveated-rendering.md`
 - `guides/linux-container/docs/device-and-dsc.md`
 - `guides/linux-container/docs/drm-leasing.md`
 - `guides/linux-container/docs/droidspaces.md`

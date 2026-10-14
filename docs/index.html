@@ -12,8 +12,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
   <meta name="theme-color" content="#080808">
   <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
   <title>DroidXR - VR on your terms</title>
-  <link rel="stylesheet" href="styles.css?v=journal-15">
-  <script type="module" src="app.mjs?v=journal-15"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-16">
+  <script type="module" src="app.mjs?v=journal-16"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
@@ -66,14 +66,14 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       </div>
       <p class="lead">I want to choose what runs my headset, keep the session on hardware I control, and keep using the good hardware I already own. DroidXR is my attempt to make that practical, starting with PSVR 2 powered by an Android phone.</p>
       <p class="mission-copy">The aim is more choice over the software, less dependence on one closed ecosystem, and local operation with clearer control over your data. There is working hardware behind the idea, and plenty left to build.</p>
-      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working proof: Skyrim VR, eye tracking and gaze-driven rendering through Linux on the phone.<br><span class="indent">Native Android: an image and head-follow are confirmed. Frame pacing still needs work.</span></p>
+      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working proof: Skyrim VR through Linux on the phone.<br><span class="indent">Native Android: an image and head-follow are confirmed. Frame pacing still needs work.</span></p>
       <div class="intro-actions"><a class="read-story" href="#breakthrough">See it running &#8595;</a><a class="read-story" href="#contribute">Help build what comes next &#8595;</a></div>
     </div>
 
     <section id="breakthrough" class="breakthrough">
       <p class="section-number">The breakthrough / Recorded on my setup</p>
       <h2>That's Skyrim VR. Running from my phone.</h2>
-      <p>This is the point where the idea became real for me. Skyrim runs very well in my Linux-container setup, with full eye tracking and eye-tracked foveated rendering. That means the game puts more detail where I'm looking, instead of spending the same effort on every part of the picture.</p>
+      <p>This is the point where the idea became real for me. Skyrim runs very well in my Linux-container setup. My tests also led into eye tracking and foveation, but getting a picture, processing gaze and reducing the game's shading work each need their own proof. <a href="#foveated-rendering">Here's what the rendering experiments actually show.</a></p>
       <div class="demo-frame">
         <video id="demo-video" controls muted playsinline preload="none" poster="assets/skyrim-original-bfc61bc9.png" data-src="assets/skyrim-original-bfc61bc9.mp4" aria-label="Skyrim VR running on the phone: side-by-side eye views and moving gaze overlays" aria-describedby="demo-description"></video>
         <div class="demo-toolbar"><span>Original recording · 1080p / 60 fps</span><button id="demo-sound" type="button" aria-pressed="false">Video sound off</button></div>
@@ -93,6 +93,15 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       <p id="quest-description" class="media-caption">My recording, shown at 4× speed. Choose the speed button to watch at the original pace. It starts muted when the player comes into view; sound and fullscreen are optional.</p>
       <p>This gave me another way to explore the same idea: choose how the headset connects and what drives the experience. <a href="https://github.com/WiVRn/WiVRn" target="_blank" rel="noreferrer">WiVRn</a> provides the streaming work this experiment builds on. It is separate from the PSVR 2 display-driver route, and the recording alone doesn't establish the exact host or connection speed.</p>
       <details class="evidence-note"><summary>What this changes, and what privacy still needs checking</summary><p>A local wired stream can reduce reliance on a vendor's cloud streaming path. Quest still runs its own operating system and tracking software. Movement and camera processing needed for VR are separate from telemetry sent elsewhere.</p><p>Turning Wi-Fi off does not prove telemetry is blocked: Ethernet may still reach the Internet, and stored data could sync later. I have not measured network isolation, telemetry or latency for this recording. A deliberately isolated network and an audit of outgoing traffic would be separate tests.</p></details>
+    </section>
+
+    <section id="foveated-rendering">
+      <p class="section-number">Current work / Foveated rendering</p>
+      <h2>Put the GPU work where it matters.</h2>
+      <p>Once I had the headset working, I wanted the phone to spend less effort on detail I wasn't looking at. That's the idea behind foveated rendering: keep detail around the important part of the view and reduce shading work farther out. Eye tracking can tell the software where I'm looking, but the renderer still has to use that information.</p>
+      <p>The work split into different experiments. A Monado compositor path reads per-eye gaze and centers its fuller upscaling work there, with a cheaper upscale outside it. That changes how an already rendered image is processed. Separate Turnip and DXVK prototype files explore shading the periphery less often using a fixed center. The reviewed Turnip proposal is unbuilt; that DXVK prototype has only a desktop smoke test. I'm tracing the libraries from the working run separately.</p>
+      <p>What I want from this is less GPU work in the periphery while keeping the part I'm looking at clear. I reported eye tracking and foveation working in the headset. The implementation mapping is still underway, and the completed audit doesn't yet put a reliable number on GPU-work savings in that run.</p>
+      <p>This is work around the Linux-container route. The newer native Android route is unfinished, and possible reuse on Steam Frame still needs its own implementation and tests. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/foveated-rendering.md" target="_blank" rel="noreferrer">How the experiments fit together, what was checked, and the upstream work behind them &#8599;</a></p>
     </section>
 
     <section id="work">
@@ -179,8 +188,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       <p>Skyrim VR ran through the phone's container setup, and I confirmed that it was visible inside PSVR 2. Both Sense controllers were switched on. At that first checkpoint, controller tracking and audio still needed their own checks.</p>
       <p>Later, performance work exposed a problem a frame counter could hide. A game could report more frames while head turns still produced ghosting: old-looking images trailing the movement. The software doing the final headset update was waiting behind the game's graphics work.</p>
       <p>We changed how the phone prioritized those headset updates and passed frames along. In a later comparison, the delay dropped. I put the headset on again: the ghosting was gone, the controllers were fine, and motion felt much smoother. A bigger number on a counter wouldn't have told that story.</p>
-      <p>Eye tracking was the next connection to make useful. Monado supplied the direction each eye was looking. A modified game graphics layer, DXVK, read that gaze and used it to choose where the game should spend its rendering detail. That's eye-tracked foveated rendering: keep the detail around your gaze, do less work farther away, and move that focus as your eyes move.</p>
-      <p>The recording above is the result on my setup: Skyrim running from the phone with full eye tracking and gaze-driven rendering. It took the whole chain to get there. The Android app enables the display setup; the runtime supplies the gaze; the game-side graphics work uses it. That's what turned the idea into a working phone-hosted VR milestone.</p>
+      <p>Eye tracking was the next connection I wanted to make useful. I reported eye tracking and foveation working in my tests, and the recording shows moving gaze overlays. The later source review separates several experiments: gaze-centered upscaling in the compositor, and fixed-center shading prototypes in DXVK and Turnip.</p>
+      <p>The DXVK libraries from the saved game session do not match the source-reviewed prototype. Those working libraries are being traced separately; the older prototype isn't a complete account of the run. The <a href="#foveated-rendering">rendering notes</a> keep the code being inspected, the GPU-work goals and my experience wearing the headset clear.</p>
       <details class="evidence-note"><summary>The motion result, with its limits</summary><p>The 11 October project notes record a matched comparison in which compositor queue delay fell from about 7.7 ms to 0.48 ms. The game's completion-rate proxy fell from 58.5 to 39.3 frames per second, while the worn-headset report improved. These are results from that setup and comparison, not a general phone performance claim or a completed native Android result.</p></details>
     </div>
 

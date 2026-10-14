@@ -5,9 +5,11 @@ Original project contributions only; see LICENSE-SCOPE.md. Third-party material 
 -->
 # PSVR-2-DroidXR
 
-Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-15).
+Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-16).
 
-The journal also shows a separate [Meta Quest streaming experiment](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-15#quest-experiment), with the original-quality recording at 4× speed and an option to watch at its recorded pace. The reported modified WiVRn/USB Ethernet setup is distinct from the PSVR 2 display-driver route. The recording does not establish network isolation, telemetry behavior or measured latency.
+The journal also shows a separate [Meta Quest streaming experiment](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-16#quest-experiment), with the original-quality recording at 4× speed and an option to watch at its recorded pace. The reported modified WiVRn/USB Ethernet setup is distinct from the PSVR 2 display-driver route. The recording does not establish network isolation, telemetry behavior or measured latency.
+
+The [foveated-rendering notes](guides/foveated-rendering.md) distinguish reviewed fixed-center shading prototypes from gaze-centered compositor upscaling. The working session's libraries are being mapped to source; the notes keep that investigation, the reported headset experience and GPU-workload goals clear. Mesa R1's public packaging documentation does not establish its foveation capabilities.
 
 ## Acknowledgment: iVRy's PSVR2 research
 
