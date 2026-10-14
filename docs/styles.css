@@ -76,3 +76,4 @@ code{padding:.12em .35em;border:1px solid #dedede;border-radius:4px;background:#
 @media(max-width:1279px){.emblem-dock{height:174px;display:flex;align-items:center;justify-content:center;margin:22px 0 28px}.hacker-emblem{position:relative;inset:auto;display:flex;align-items:center;gap:16px;width:300px;max-width:calc(100% - 28px);padding:8px 0}.hacker-emblem svg{width:116px;flex:0 0 116px}.emblem-motto{font-size:20px;line-height:1.6;text-align:left;margin:0;letter-spacing:0}}
 @media(max-width:380px){.hacker-emblem{gap:12px}.hacker-emblem svg{width:100px;flex-basis:100px}.emblem-motto{font-size:19px}}
 section .target-paths p{color:#222}
+.demo-toolbar{flex-wrap:wrap}.demo-toolbar>span{flex:1 1 170px}.video-actions{display:flex;gap:8px;flex-wrap:wrap}

@@ -17,6 +17,9 @@ const root = document.documentElement;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const video = document.querySelector('#demo-video');
 const videoSound = document.querySelector('#demo-sound');
+const questVideo = document.querySelector('#quest-video');
+const questSound = document.querySelector('#quest-sound');
+const videoStates = [video, questVideo].map(media => ({media, inView: false, userPaused: false, autoPausing: false}));
 const emblem = document.querySelector('#emblem-control');
 const emblemDock = document.querySelector('#emblem-dock');
 const dockedEmblem = matchMedia('(max-width: 1279px)');
@@ -36,7 +39,7 @@ let surfaceGlow = 0;
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 let sceneTime = 0, pointerX = 0, pointerY = 0, driftX = 0, driftY = 0, driftScroll = scrollY;
 let dragX = 0, dragY = 0, drag = null, suppressClick = false, pokeAt = -100;
-let videoInView = false, userPausedVideo = false, autoPausingVideo = false, restoreMusic = false;
+let restoreMusic = false;
 audio.volume = .5;
 function saveSoundChoice(value) {
   try { sessionStorage.setItem('droidxr-sound-choice', value); } catch {}
@@ -77,7 +80,8 @@ async function connectAudio(media = audio) {
   }
 }
 const analyse = media => connectAudio(media).catch(() => {});
-const videoAudible = () => !video.paused && !video.ended && !video.muted && video.volume > 0;
+const videoAudible = (media = video) => !media.paused && !media.ended && !media.muted && media.volume > 0;
+const anyVideoAudible = () => videoStates.some(({media}) => videoAudible(media));
 
 function readBass() {
   if (!analyser || audioContext.state !== 'running') return 0;
@@ -234,14 +238,14 @@ function musicBlocked() {
 sound.addEventListener('click', () => {
   restoreMusic = false;
   if (audio.paused) {
-    video.muted = true;
+    for (const {media} of videoStates) media.muted = true;
     analyse(audio);
     audio.play().catch(musicBlocked);
   } else { saveSoundChoice('silent'); audio.pause(); }
 });
 audio.addEventListener('play', () => {
   saveSoundChoice('enabled');
-  if (videoAudible()) video.muted = true;
+  for (const {media} of videoStates) if (videoAudible(media)) media.muted = true;
   analyse(audio);
   sound.textContent = 'Pause sound';
   sound.setAttribute('aria-label', 'Pause optional sound');
@@ -289,58 +293,87 @@ fetch('cues.json').then(response => {
 }).catch(() => {});
 setMotion(enabled);
 
-// Keep the main video out of the arrival download. Native controls remain available.
-function loadVideo() {
-  if (!video.getAttribute('src')) {
-    video.preload = 'metadata';
-    video.src = video.dataset.src;
+// Keep both recordings out of the arrival download. Native controls remain available.
+function loadVideo(media = video) {
+  if (!media.getAttribute('src')) {
+    media.preload = 'metadata';
+    media.defaultPlaybackRate = Number(media.dataset.playbackRate) || 1;
+    media.src = media.dataset.src;
+    media.playbackRate = media.defaultPlaybackRate;
   }
 }
 function autoPlayVideo() {
-  if (videoInView && !document.hidden && enabled && !reduced.matches && !userPausedVideo && !video.ended && video.muted) {
-    loadVideo();
-    video.play().catch(() => {});
+  for (const state of videoStates) {
+    const {media} = state;
+    if (state.inView && !document.hidden && enabled && !reduced.matches && !state.userPaused && !media.ended && media.muted) {
+      loadVideo(media);
+      media.play().catch(() => {});
+    }
   }
 }
 function pauseVideo() {
-  if (!video.paused) { autoPausingVideo = true; video.pause(); }
+  for (const state of videoStates) pauseRecording(state);
+}
+function pauseRecording(state) {
+  if (!state.media.paused) { state.autoPausing = true; state.media.pause(); }
 }
 function coordinateAudio() {
   videoSound.textContent = video.muted ? 'Video sound off' : 'Video sound on';
   videoSound.setAttribute('aria-pressed', String(!video.muted));
-  if (videoAudible()) {
-    analyse(video);
+  questSound.textContent = questVideo.muted ? 'Video sound off' : 'Video sound on';
+  questSound.setAttribute('aria-pressed', String(!questVideo.muted));
+  if (anyVideoAudible()) {
+    if (videoAudible()) analyse(video);
+    // Cross-origin release media stays on its native audio path.
     if (!audio.paused) { restoreMusic = true; audio.pause(); }
   } else if (restoreMusic) {
     restoreMusic = false;
     audio.play().catch(musicBlocked);
   }
 }
-videoSound.addEventListener('click', () => {
-  video.muted = !video.muted;
-  if (!video.muted) {
-    analyse(video); loadVideo();
-    if (video.paused) video.play().catch(() => {});
+for (const state of videoStates) {
+  const {media} = state, button = media === video ? videoSound : questSound;
+  button.addEventListener('click', () => {
+    media.muted = !media.muted;
+    if (!media.muted) {
+      for (const other of videoStates) if (other !== state) other.media.muted = true;
+      if (media === video) analyse(media);
+      loadVideo(media);
+      if (media.paused) media.play().catch(() => {});
+    }
+    coordinateAudio();
+  });
+  media.addEventListener('play', () => {
+    state.userPaused = false;
+    if (videoAudible(media)) for (const other of videoStates) if (other !== state) other.media.muted = true;
+    coordinateAudio();
+  });
+  media.addEventListener('pause', () => {
+    if (state.autoPausing) state.autoPausing = false; else state.userPaused = true;
+    coordinateAudio();
+  });
+  media.addEventListener('ended', coordinateAudio);
+  media.addEventListener('volumechange', () => {
+    if (videoAudible(media)) for (const other of videoStates) if (other !== state) other.media.muted = true;
+    coordinateAudio();
+  });
+  media.addEventListener('pointerdown', () => loadVideo(media), { once: true });
+  media.addEventListener('keydown', () => loadVideo(media), { once: true });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => {
+      const entry = entries[0];
+      state.inView = entry.intersectionRatio >= .45;
+      if (entry.isIntersecting) loadVideo(media);
+      if (state.inView) autoPlayVideo(); else if (!entry.isIntersecting) pauseRecording(state);
+    }, { threshold: [0, .45] }).observe(media);
   }
-  coordinateAudio();
-});
-video.addEventListener('play', () => { userPausedVideo = false; coordinateAudio(); });
-video.addEventListener('pause', () => {
-  if (autoPausingVideo) autoPausingVideo = false; else userPausedVideo = true;
-  coordinateAudio();
-});
-video.addEventListener('ended', coordinateAudio);
-video.addEventListener('volumechange', coordinateAudio);
-video.addEventListener('pointerdown', loadVideo, { once: true });
-video.addEventListener('keydown', loadVideo, { once: true });
-if ('IntersectionObserver' in window) {
-  new IntersectionObserver(entries => {
-    const entry = entries[0];
-    videoInView = entry.intersectionRatio >= .45;
-    if (entry.isIntersecting) loadVideo();
-    if (videoInView) autoPlayVideo(); else if (!entry.isIntersecting) pauseVideo();
-  }, { threshold: [0, .45] }).observe(video);
 }
+const questSpeed = document.querySelector('#quest-speed');
+questSpeed.addEventListener('click', () => { questVideo.playbackRate = questVideo.playbackRate === 4 ? 1 : 4; });
+questVideo.addEventListener('ratechange', () => {
+  questSpeed.textContent = `${questVideo.playbackRate}× speed`;
+  questSpeed.setAttribute('aria-pressed', String(questVideo.playbackRate === 4));
+});
 reduced.addEventListener('change', event => { if (event.matches) pauseVideo(); });
 
 // A native button provides keyboard access as well as mouse/touch pointer capture.
@@ -485,7 +518,8 @@ function continueSilently() {
   closeInvitation();
 }
 document.querySelector('#sound-approve').addEventListener('click', () => {
-  saveSoundChoice('enabled'); video.muted = true;
+  saveSoundChoice('enabled');
+  for (const {media} of videoStates) media.muted = true;
   analyse(audio);
   audio.play().then(() => { root.dataset.autoplay = 'approved'; }, musicBlocked);
   closeInvitation();

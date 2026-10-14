@@ -12,8 +12,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
   <meta name="theme-color" content="#080808">
   <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
   <title>DroidXR - VR on your terms</title>
-  <link rel="stylesheet" href="styles.css?v=journal-13">
-  <script type="module" src="app.mjs?v=journal-13"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-14">
+  <script type="module" src="app.mjs?v=journal-14"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
@@ -80,6 +80,19 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       </div>
       <p id="demo-description" class="media-caption">My recording shows the two eye views, moving gaze overlays and Skyrim gameplay. It compares two versions of the rendering. It plays muted when you scroll it into view; the controls let you pause or turn its sound on.</p>
       <p class="media-caption">This is the working Linux route. The newer native Android route below is still in development. “Runs very well” describes my experience in this setup, rather than a measured comparison with other headsets.</p>
+    </section>
+
+    <section id="quest-experiment" class="breakthrough">
+      <p class="section-number">A separate test / Meta Quest experiment</p>
+      <h2>Another headset. Another way to make it my own.</h2>
+      <p>I also tried a different route with my Quest 3: a modified WiVRn client, USB Ethernet, and the headset's Wi-Fi switched off. In my setup, the game streamed over that local wired connection. It didn't need DisplayPort; Quest was receiving compressed video through the network.</p>
+      <div class="demo-frame">
+        <video id="quest-video" controls muted playsinline preload="none" poster="assets/quest-original-4afc4901.png" data-src="https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/quest-experiment-2026.10.14-r1/Skyrim-VR-Quest3-2026-10-08-060853.mp4" data-playback-rate="4" aria-label="Skyrim VR in the Meta Quest experiment, initially played at four times the recorded speed" aria-describedby="quest-description"></video>
+        <div class="demo-toolbar"><span>Original recording · 1080p / 60 fps</span><div class="video-actions"><button id="quest-speed" type="button" aria-pressed="true">4× speed</button><button id="quest-sound" type="button" aria-pressed="false">Video sound off</button></div></div>
+      </div>
+      <p id="quest-description" class="media-caption">My recording, shown at 4× speed. Choose the speed button to watch at the original pace. It starts muted when the player comes into view; sound and fullscreen are optional. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/tag/quest-experiment-2026.10.14-r1" target="_blank" rel="noreferrer">Original file and checksum &#8599;</a></p>
+      <p>This gave me another way to explore the same idea: choose how the headset connects and what drives the experience. <a href="https://github.com/WiVRn/WiVRn" target="_blank" rel="noreferrer">WiVRn</a> provides the streaming work this experiment builds on. It is separate from the PSVR 2 display-driver route, and the recording alone doesn't establish the exact host or connection speed.</p>
+      <details class="evidence-note"><summary>What this changes, and what privacy still needs checking</summary><p>A local wired stream can reduce reliance on a vendor's cloud streaming path. Quest still runs its own operating system and tracking software. Movement and camera processing needed for VR are separate from telemetry sent elsewhere.</p><p>Turning Wi-Fi off does not prove telemetry is blocked: Ethernet may still reach the Internet, and stored data could sync later. I have not measured network isolation, telemetry or latency for this recording. A deliberately isolated network and an audit of outgoing traffic would be separate tests.</p></details>
     </section>
 
     <section id="work">

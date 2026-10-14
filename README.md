@@ -5,7 +5,9 @@ Original project contributions only; see LICENSE-SCOPE.md. Third-party material 
 -->
 # PSVR-2-DroidXR
 
-Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-13).
+Explore [DroidXR: VR on your terms](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-14).
+
+The journal also shows a separate [Meta Quest streaming experiment](https://astroskyoffical.github.io/PSVR-2-DroidXR/?v=journal-14#quest-experiment), with the original-quality recording at 4× speed and an option to watch at its recorded pace. The reported modified WiVRn/USB Ethernet setup is distinct from the PSVR 2 display-driver route. The recording does not establish network isolation, telemetry behavior or measured latency.
 
 ## Acknowledgment: iVRy's PSVR2 research
 
