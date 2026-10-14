@@ -19,6 +19,7 @@ let beats = [], drops = [], lastBeat = -1, lastDrop = -1;
 let frameId = 0, previousFrame = 0, lowEnd = 0, dropSize = 0, dropTime = -100;
 let enabled = !reduced.matches, seeking = false, waiting = false;
 let lastFlash = -100, flashAt = -100, flashSize = 0;
+let surfaceGlow = 0;
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 let sceneTime = 0, pointerX = 0, pointerY = 0, driftX = 0, driftY = 0, driftScroll = scrollY;
 let dragX = 0, dragY = 0, drag = null, suppressClick = false, pokeAt = -100;
@@ -74,10 +75,11 @@ function readBass() {
   return energy / (count - 1);
 }
 
-function setSignal(bass, drop, flash = 0) {
+function setSignal(bass, drop, flash = 0, glow = 0) {
   root.style.setProperty('--bass-level', bass.toFixed(3));
   root.style.setProperty('--pulse-glow', drop.toFixed(3));
   root.style.setProperty('--logo-flash', flash.toFixed(3));
+  root.style.setProperty('--surface-glow', glow.toFixed(3));
   root.style.setProperty('--edge-alpha', (.14 + bass * .20 + drop * .12).toFixed(3));
   root.style.setProperty('--edge-glow', `${(5 + bass * 22 + drop * 26).toFixed(1)}px`);
   root.style.setProperty('--trace-offset', `${(-audio.currentTime * 1.2).toFixed(3)}px`);
@@ -140,6 +142,8 @@ function resetCues() {
   dropTime = -100;
   lastFlash = sceneTime; flashAt = -100;
   lowEnd = 0;
+  surfaceGlow = 0;
+  root.style.setProperty('--surface-glow', '0');
 }
 
 function flashLogo(beat) {
@@ -186,7 +190,9 @@ function frame(now) {
   const drop = playing && age >= 0 && age < 1.7
     ? dropSize * (age < .22 ? Math.sin(age / .22 * Math.PI / 2) : Math.exp(-(age - .22) / .6)) : 0;
   const flash = playing ? flashSize * Math.exp(-Math.max(0, sceneTime - flashAt) / .18) : 0;
-  setSignal(lowEnd, drop, flash);
+  const glowTarget = playing && !audio.muted && audio.volume > 0 ? clamp(flash * .7 + drop * .3, 0, 1) : 0;
+  surfaceGlow += (glowTarget - surfaceGlow) * (1 - Math.exp(-elapsed / (glowTarget > surfaceGlow ? .08 : .32)));
+  setSignal(lowEnd, drop, flash, surfaceGlow);
   paint(sceneTime, lowEnd, kick, drop);
   frameId = requestAnimationFrame(frame);
 }
@@ -201,6 +207,7 @@ function setMotion(value) {
   motion.textContent = enabled ? 'Motion on' : 'Motion off';
   if (!enabled) {
     cancelAnimationFrame(frameId); frameId = 0;
+    surfaceGlow = 0;
     setSignal(0, 0); paint(sceneTime); pauseVideo();
   } else start();
 }
