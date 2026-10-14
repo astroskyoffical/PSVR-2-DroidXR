@@ -5,12 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080808">
   <meta name="description" content="DroidXR: personal engineering notes on PSVR 2, rooted Android, display handoff and the ongoing native port.">
-  <title>DroidXR — project notes</title>
-  <link rel="stylesheet" href="styles.css?v=journal-3">
-  <script type="module" src="app.mjs?v=journal-3"></script>
+  <title>DroidXR - project notes</title>
+  <link rel="stylesheet" href="styles.css?v=journal-4">
+  <script type="module" src="app.mjs?v=journal-4"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
+  <div class="hacker-emblem" aria-hidden="true">
+    <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path class="emblem-ring" d="M100 14 166 52V128L100 166 34 128V52Z" stroke="currentColor" stroke-width="1"/>
+      <path d="M61 65 48 90 61 115M139 65 152 90 139 115" stroke="currentColor" stroke-width="3"/>
+      <path d="M72 66H103M87 66V115M111 66V115M132 66V115M111 90H132" stroke="currentColor" stroke-width="5"/>
+      <path d="M78 145H122M100 22V31M100 149V158M42 57 50 62M150 120 158 125" stroke="currentColor"/>
+      <text x="100" y="194" text-anchor="middle" fill="currentColor" font-family="Consolas,monospace" font-size="12" letter-spacing="3">TRUE HACKER</text>
+      <path d="M58 208H142" stroke="currentColor" stroke-width=".5"/>
+    </svg>
+  </div>
   <header class="page-header">
     <a class="author" href="https://github.com/astroskyoffical" target="_blank" rel="noreferrer">astroskyoffical</a>
     <nav aria-label="Project navigation"><a href="#work">Work</a><a href="#status">Status</a><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">GitHub &#8599;</a></nav>
@@ -19,46 +29,78 @@
     <div class="intro">
       <p class="note-label">PSVR 2 / rooted Android / engineering journal</p>
       <h1 id="hero-title">DroidXR</h1>
-      <p class="lead">I'm working on getting PSVR 2 running from a rooted Android phone. This is the story of the working container path, the display and USB work behind it, and the native Android port still being built.</p>
+      <p class="lead">I want a rooted Android phone to run PSVR 2. The container-based phone VR path works. Getting the same project running natively on Android has been a much less cooperative exercise.</p>
       <div class="connection" aria-label="PSVR 2 connected to rooted Android"><span>PSVR 2</span><i aria-hidden="true"></i><span>Rooted Android</span></div>
-      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Container-based phone VR: demonstrated.<br><span class="indent">Native Android: work in progress.</span></p>
+      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Container-based phone VR: demonstrated.<br><span class="indent">Native Android: work in progress. Worn test unresolved.</span></p>
     </div>
 
     <section id="work">
-      <p class="section-number">01 / How this started</p>
-      <h2>Why I'm doing this</h2>
-      <p>PSVR 2 was built around a console environment. A rooted Android phone has a different graphics stack, USB environment and runtime. Getting the two to work together means understanding those expectations and working through them.</p>
-      <p>There was skepticism about whether this could work. I kept going. The container-based phone VR path became a real milestone; now the work is about bringing the pieces together natively on Android.</p>
+      <p class="section-number">01 / The goal</p>
+      <h2>Why put a phone in the middle?</h2>
+      <p>I wanted to find out how much of the host side a phone could take on: talking to the headset, running the XR software, and getting the right images onto the external display. That turns out to involve several systems which can each appear healthy while the headset remains completely black.</p>
+      <p>The working container path gave me a useful starting point. I could use a Linux environment on the phone and work with the runtime and graphics stack there. It also left a question worth pursuing: what would it take to make this a native Android application?</p>
+      <p>Native Android matters because I want that integration to belong in the Android environment: device access, application lifecycle, rendering and cleanup. It does not automatically promise better performance. It gives me a concrete set of dependencies to understand and replace where necessary.</p>
     </section>
 
     <section>
-      <p class="section-number">02 / Display work</p>
-      <h2>LinkDoctor, DSC and display handoff</h2>
-      <p>LinkDoctor is where we've worked on inspecting the physical display path: EDID, native modes, display compression through DSC, and whether the reported output agrees with the active display state.</p>
-      <p>The earlier work also explored direct display handoff with DRM leasing, KMS and Vulkan. The difficult part is handing the external output to Linux while Android keeps its own screen working, then restoring that output when the session ends.</p>
-      <p>This is why the display work is more than finding a resolution that looks right. Ownership, synchronization and cleanup are part of making the path usable.</p>
+      <p class="section-number">02 / Finding the display</p>
+      <h2>A mode list is the beginning</h2>
+      <p>LinkDoctor is the display investigation tool in this project. I use it to inspect the display's EDID, its advertised modes, and the phone's display state. EDID tells me what the connected display reports that it can accept. I still have to establish what the phone is actually sending.</p>
+      <p>One earlier fix was about that distinction. DisplayPort debug information could retain an old mode after output had been disabled. The active-state check needed to compare the connector with the active display controller. A plausible-looking line in a debug dump was insufficient evidence that the output was running.</p>
+      <p>DSC, Display Stream Compression, is another part of this investigation. I need to understand the modes, compression capabilities and policy along the display path. A capability report or accepted setting alone cannot establish that compressed frames reached the headset correctly. The final check still has to include the physical output.</p>
     </section>
 
     <section>
-      <p class="section-number">03 / Runtime work</p>
-      <h2>Monado, OpenXR and the native runtime</h2>
-      <p>An earlier checkpoint built Monado for ARM64 Linux with PSVR 2 and Sense support enabled. OpenXR and the graphics runtime are part of the work, alongside the display path.</p>
-      <p>The native Android effort still has its own integration work: USB probing, the external compositor, and the relationship between headset input and the runtime. I keep build results and hardware results separate in the project notes.</p>
+      <p class="section-number">03 / Owning the output</p>
+      <h2>The phone is already using its display stack</h2>
+      <p>For the Linux route, the display work has involved DRM leasing, kernel mode setting and Vulkan. Here DRM means Direct Rendering Manager, the Linux graphics interface. The intended handoff gives the Linux client control of the external output while Android keeps its internal screen working.</p>
+      <p>That ownership has to last through presentation and end cleanly. A lease by itself does not stop the original display owner from changing resources that the external session depends on. Acquisition, synchronization and restoration all need to agree.</p>
+      <p>Earlier native pattern tests reached kernel commit and coordinated restoration. At that checkpoint, seeing the physical pattern still needed confirmation. Those results were useful for the display handoff; they did not establish headset output or validate every GPU buffer path.</p>
     </section>
 
     <section>
-      <p class="section-number">04 / Reverse engineering</p>
-      <h2>Driver and tracking research</h2>
-      <p>The driver research has included static analysis of the official driver and source inspection of the surrounding runtime. The useful questions are specific: what can be reused, what depends on another driver, and what has to be implemented for the native path?</p>
-      <p>USB interface behavior, device timestamps, calibration and Sense optical tracking remain important parts of that investigation. A changing input value is a useful observation; reliable pose and tracking need more evidence.</p>
+      <p class="section-number">04 / Connecting the runtime</p>
+      <h2>Where Monado and OpenXR fit</h2>
+      <p><a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a> is the interface an application uses to talk to an XR runtime: request device state and poses, then submit rendered views. <a href="https://monado.freedesktop.org/" target="_blank" rel="noreferrer">Monado</a> is an open source runtime implementing that interface. It gives this project source code to inspect across the driver and compositor boundaries.</p>
+      <p>An earlier checkpoint built Monado for ARM64 Linux with PSVR 2 and Sense support enabled. That was a build result. Making the hardware work still required the USB, graphics and display paths to function together.</p>
+      <p>The Android port has its own integration work, including USB probing and the external compositor. A successful Linux build does not supply those Android connections by itself. I have to follow the data from the device through the runtime to the submitted frame, then check what actually appeared.</p>
+    </section>
+
+    <section>
+      <p class="section-number">05 / Understanding the input</p>
+      <h2>USB packets need an interpretation</h2>
+      <p>The headset can send data before I have a correct explanation for it. Pose decoding means figuring out which fields are meaningful, their units and coordinate conventions, how device timestamps relate to runtime time, and what the status fields permit me to use.</p>
+      <p>Static analysis of the official driver and inspection of the runtime source help narrow those questions. They provide leads to test. They do not establish that a proposed interpretation behaves correctly on the phone.</p>
+      <p>Sense adds another distinction: controller input and orientation are separate work from optical position tracking. Having some controller data available does not complete that tracking pipeline. Calibration, transport behavior and recovery after a lost device remain part of the job.</p>
+    </section>
+
+    <section>
+      <p class="section-number">06 / The recent native tests</p>
+      <h2>The unworn result did not survive being worn</h2>
+      <p>The native V2 test with the headset unworn was encouraging. The decoder accepted most of the full pose records, and the run produced a two-view projection screenshot. The reported pose state had <code>VALID</code> set and <code>TRACKED</code> clear.</p>
+      <p>That is a useful checkpoint with a specific limit. The screenshot establishes rendered views for that run. It does not establish what was visible through the lenses, or prove tracked native VR. In OpenXR, <a href="https://registry.khronos.org/OpenXR/specs/1.1/man/html/XrSpaceLocationFlagBits.html" target="_blank" rel="noreferrer">valid and tracked have distinct meanings</a>; the reported valid state here cannot stand in for evidence of active tracking.</p>
+      <p>The subsequent worn test went black. Every full pose packet in that run was rejected. The worn-state decoder problem is still unresolved. Putting the headset on remains a fairly reasonable requirement for a VR system.</p>
+      <details class="evidence-note">
+        <summary>Test evidence and limits</summary>
+        <div class="evidence-scroll">
+          <table>
+            <thead><tr><th scope="col">Test</th><th scope="col">Full pose records</th><th scope="col">Reported result</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Native V2, unworn</th><td>557 / 666 accepted</td><td>Two-view projection screenshot. VALID set; TRACKED clear.</td></tr>
+              <tr><th scope="row">Native, worn, 45 seconds</th><td>0 / 1,755 accepted</td><td>Black output; all 1,755 full pose packets rejected.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>These recent results come from my supplied test summary. Earlier display and build checkpoints come from the project notes. The page does not read live device telemetry. The screenshot result and reported flags are recorded as supplied, without claiming independent verification of the underlying capture.</p>
+      </details>
     </section>
 
     <section id="status">
-      <p class="section-number">05 / Where it stands</p>
+      <p class="section-number">07 / Current status</p>
       <h2>Where it stands now</h2>
-      <p>The container-based phone VR result is my reported milestone. The native Android port is still in progress, with device-specific integration and hardware checks remaining.</p>
-      <p>The next checks include USB transport and interface lifecycle, direct display acquisition and presentation, calibration, tracking behavior, and clean recovery when a device disconnects or a session ends.</p>
-      <p>Earlier engineering checkpoints came from the project notes. Current status here is supplied by the project author; this page does not read live headset or phone telemetry.</p>
+      <p>The container-based phone VR path works in my setup. Native Android remains in progress: there is an unworn projection checkpoint, followed by a failed worn run. I cannot call that working native VR, and it says nothing about compatibility with every phone.</p>
+      <p>The next immediate test is to compare the unworn and worn streams and find why the current decoder rejects the worn-state records. Then I need a worn run that demonstrates usable poses and visible projection together. Passing that would give the later calibration, tracking-loss, disconnect and session-cleanup checks a much firmer starting point.</p>
+      <p>That is the work I am documenting here: questions, bounded results, and the next experiment each result makes necessary.</p>
     </section>
 
     <section class="project-links">

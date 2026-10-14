@@ -14,6 +14,22 @@ let beats = [], drops = [], lastBeat = -1, lastDrop = -1;
 let frameId = 0, previousFrame = 0, lowEnd = 0, dropSize = 0, dropTime = -100;
 let enabled = !reduced.matches, seeking = false, waiting = false;
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+let sceneTime = 0, pointerX = 0, pointerY = 0, driftX = 0, driftY = 0, driftScroll = scrollY;
+const particles = Array.from({ length: 18 }, (_, i) => ({
+  x: (i * .618034 + .13) % 1, y: (i * .414214 + .17) % 1,
+  depth: .3 + (i % 5) * .17, radius: 24 + (i * 17 % 53), phase: i * 1.9
+}));
+// Reuse one soft sprite. No per-frame gradients or external imagery.
+const orb = document.createElement('canvas');
+orb.width = orb.height = 128;
+const orbContext = orb.getContext('2d');
+const halo = orbContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+halo.addColorStop(0, 'rgba(255,255,255,.48)');
+halo.addColorStop(.38, 'rgba(255,255,255,.34)');
+halo.addColorStop(.66, 'rgba(255,255,255,.12)');
+halo.addColorStop(1, 'rgba(255,255,255,0)');
+orbContext.fillStyle = halo;
+orbContext.fillRect(0, 0, 128, 128);
 
 function connectAudio() {
   if (!audioContext) {
@@ -57,7 +73,23 @@ function paint(time, bass = 0, kick = 0, drop = 0) {
   }
   context.setTransform(scale, 0, 0, scale, 0, 0);
   context.clearRect(0, 0, width, height);
-  const lines = width < 600 ? 4 : 6;
+  const count = width < 600 ? 10 : 18;
+  canvas.dataset.particleCount = String(count);
+  canvas.dataset.pixelRatio = String(scale);
+  canvas.dataset.sceneTime = time.toFixed(3);
+  for (let i = 0; i < count; i++) {
+    const particle = particles[i];
+    const radius = particle.radius * (width < 600 ? .72 : 1) * (1 + bass * .045 + drop * .10);
+    const x = particle.x * width + Math.sin(time * .055 + particle.phase) * 32 * particle.depth + driftX * particle.depth;
+    const span = height + 220;
+    const rawY = particle.y * height + Math.cos(time * .045 + particle.phase) * 37 * particle.depth
+      + driftY * particle.depth - driftScroll * .025 * particle.depth;
+    const y = ((rawY + 110) % span + span) % span - 110;
+    context.globalAlpha = .23 + particle.depth * .12 + bass * .025 + drop * .055;
+    context.drawImage(orb, x - radius, y - radius, radius * 2, radius * 2);
+  }
+  context.globalAlpha = 1;
+  const lines = width < 600 ? 3 : 4;
   const amplitude = 8 + bass * 18 + kick * 28 + drop * 25;
   for (let line = 0; line < lines; line++) {
     context.beginPath();
@@ -93,6 +125,13 @@ function frame(now) {
   if (previousFrame && now - previousFrame < 33) { frameId = requestAnimationFrame(frame); return; }
   const elapsed = previousFrame ? Math.min(.12, (now - previousFrame) / 1000) : 1 / 30;
   previousFrame = now;
+  sceneTime += elapsed;
+  const ease = 1 - Math.exp(-elapsed / .65);
+  driftX += (pointerX - driftX) * ease;
+  driftY += (pointerY - driftY) * ease;
+  driftScroll += (scrollY - driftScroll) * ease;
+  root.style.setProperty('--emblem-x', `${(driftX * .4).toFixed(2)}px`);
+  root.style.setProperty('--emblem-y', `${(driftY * .4 - Math.min(driftScroll, 1200) * .004).toFixed(2)}px`);
   const playing = !audio.paused && !audio.ended && !seeking && !waiting;
   const time = audio.currentTime || 0;
   const target = playing ? readBass() : 0;
@@ -114,7 +153,7 @@ function frame(now) {
   const drop = playing && age >= 0 && age < 1.7
     ? dropSize * (age < .22 ? Math.sin(age / .22 * Math.PI / 2) : Math.exp(-(age - .22) / .6)) : 0;
   setSignal(lowEnd, drop);
-  paint(now / 1000, lowEnd, kick, drop);
+  paint(sceneTime, lowEnd, kick, drop);
   frameId = requestAnimationFrame(frame);
 }
 
@@ -123,11 +162,12 @@ function start() {
 }
 function setMotion(value) {
   enabled = Boolean(value) && !reduced.matches;
+  document.body.classList.toggle('motion-off', !enabled);
   motion.setAttribute('aria-checked', String(enabled));
   motion.textContent = enabled ? 'Motion on' : 'Motion off';
   if (!enabled) {
     cancelAnimationFrame(frameId); frameId = 0;
-    setSignal(0, 0); paint(0);
+    setSignal(0, 0); paint(sceneTime);
   } else start();
 }
 
@@ -161,7 +201,12 @@ audio.addEventListener('volumechange', () => {
 });
 motion.addEventListener('click', () => setMotion(!enabled));
 reduced.addEventListener('change', event => setMotion(!event.matches));
-window.addEventListener('resize', () => paint(0));
+window.addEventListener('resize', () => paint(sceneTime));
+window.addEventListener('pointermove', event => {
+  if (!enabled || event.pointerType !== 'mouse') return;
+  pointerX = (event.clientX / innerWidth - .5) * 20;
+  pointerY = (event.clientY / innerHeight - .5) * 16;
+}, { passive: true });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { cancelAnimationFrame(frameId); frameId = 0; } else start();
 });
