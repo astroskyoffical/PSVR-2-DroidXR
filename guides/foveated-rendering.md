@@ -65,6 +65,6 @@ A lower utilization percentage alone can reflect changed clocks, waiting or star
 
 ## Scope and credit
 
-This is a custom integration in the Linux-container route. The native Android route still needs its own implementation and qualification. Reusing ideas on Steam Frame remains untested compatibility.
+This is a custom integration in the Linux-container route. The native Android route still needs its own implementation and qualification. Porting these ideas to Steam Frame or another headset is future integration work.
 
 AstroPC's integration includes the gaze transport, DXVK injection and local stack configuration. It builds on [Monado](https://monado.freedesktop.org/), [DXVK](https://github.com/doitsujin/dxvk), [Mesa/Turnip](https://www.mesa3d.org/), Khronos Vulkan/OpenXR, [Qualcomm Snapdragon Game Super Resolution](https://github.com/SnapdragonGameStudios/snapdragon-gsr), and [AMD FidelityFX FSR/RCAS](https://github.com/GPUOpen-Effects/FidelityFX-FSR). Their algorithms, source, credits and licenses remain separate. This is not a claim that upstream DXVK or stock Monado supplies the complete phone setup.

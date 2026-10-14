@@ -60,3 +60,9 @@ The cleanup stops its Linux runtime/bridge/desktop processes, terminates the lea
 **Known incomplete restoration:** `on` denies the GameAssist overlay app-op, and `off` does not restore its previous value. Performance-profile changes and permissive node recreation also need their original-state inventory. No restore command is guessed here. A future installer must either avoid those actions or restore the exact prior state through an approved, tested method.
 
 Stopping the session does not remove the boot DSC module, uninstall LinkDoctor, delete the container or restore a replaced graphics/runtime binary. For a component rollback, restore its preserved files and configuration together. Do not treat this session cleanup as a full uninstall procedure.
+
+## Historical motion comparison
+
+The 11 October project notes record a matched comparison in which compositor queue delay fell from about 7.7 ms to 0.48 ms. The game's completion-rate proxy fell from 58.5 to 39.3 frames per second, while AstroPC's worn-headset result improved: ghosting was gone, the controllers worked and motion felt smoother.
+
+This is a queue-priority/pipelining comparison from the Linux setup, separate from DXVK foveation and the native Android route. The proxy is not a display-refresh measurement, and these values do not quantify foveation savings. Future GPU-work comparisons need matched scenes, quality and timing boundaries.

@@ -30,3 +30,15 @@ Match the host model, kernel release and saved module digest before a controlled
 ## Restore
 
 The session `off` path returns the external output to Android; it does not uninstall the boot module. Retain the original module and configuration for recovery through the existing module manager's supported route. No kernel, module, firmware or security change was made during release review.
+
+## Retained startup configuration
+
+The saved production `service.sh` contains this loading line:
+
+```sh
+insmod ${0%/*}/psvr2_dsc.ko enable=1
+```
+
+This records the existing module's startup behavior, not a fresh-install instruction. `${0%/*}` is the directory containing the script, so it loads the adjacent module. The script checks Sony's `4dd9` display-identification bytes. If the mode is absent, it exposes `4000 2040 120 0` through `edid_modes` and cycles HPD, the connection-detection signal.
+
+The recovered 12 October baseline retains `service.sh`, `module.prop` and `psvr2_dsc.ko`. Loaded snapshots identify NX809J, ARM64 and kernel `6.12.23-android16-OP-WILD`. The module targets Qualcomm's `msm_drm` path and references `register_kretprobe` and `sde_dsc_populate_dsc_config`, consistent with a compression-setup hook. Matching production C source and the first successful run's log remain unrecovered; the distribution gate above remains in force.

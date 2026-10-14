@@ -28,6 +28,8 @@ The grant also covers the original project-authored portions of these documentat
 - `LICENSE-SCOPE.md`
 - `NOTICE`
 - `guides/foveated-rendering.md`
+- `guides/native-android.md`
+- `guides/quest-streaming.md`
 - `research/dxvk-gaze/README.md`
 - `research/dxvk-gaze/PACKAGE-TERMS.md`
 - `guides/linux-container/docs/device-and-dsc.md`
