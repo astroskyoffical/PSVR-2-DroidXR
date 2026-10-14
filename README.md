@@ -76,3 +76,9 @@ First resolve the [paths and account configuration](guides/linux-container/docs/
 8. Add [optional test apps](guides/linux-container/docs/optional-test-apps.md) only after the headset path works.
 
 Each component page explains its role, recovered installation evidence, checks and restoration limits. Missing artifacts are identified where they block a step. The repository contains documentation and the website; the separately linked Mesa release contains only its reviewed component files. No APK, kernel module, Monado runtime, rootfs image, proprietary driver, game asset, private log or signing key is included.
+
+## Website publishing
+
+The site is moving to a standard GitHub Actions Pages artifact so the full original recording can be served directly by Pages without adding it as a Git blob or reencoding it. The manual bootstrap verifies its exact size and SHA-256 before deployment; its temporary fallback remains until the new copy is verified.
+
+The rebuild source is the full original MP4 in the last successful Pages deployment, not the expiring Actions artifact. Each later build verifies that copy before replacing the site. The preserved local original and verified local archive are recovery copies. If the previous Pages media is unavailable, a build fails rather than publishing an incomplete site; recovery then needs one of those copies. This is persistent Pages hosting, not an independent remote backup. The workflow uses the existing GitHub Pages environment and temporary job tokens, with no added persistent credential.

@@ -9,6 +9,7 @@ AstroPC (astroskyoffical) offers **GNU General Public License version 3 only**, 
 
 | File | Covered original software |
 |---|---|
+| `.github/workflows/pages.yml` | Original site build and deployment workflow; referenced Actions retain their own licenses |
 | `docs/app.mjs` | Original site interactions, sound coordination and visual effects |
 | `docs/visual-data.mjs` | Original cue normalization and timing helpers |
 | `docs/visual-data.test.mjs` | Original helper tests |
