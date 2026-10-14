@@ -13,6 +13,7 @@ const video = document.querySelector('#demo-video');
 const videoSound = document.querySelector('#demo-sound');
 const emblem = document.querySelector('#emblem-control');
 const invitation = document.querySelector('#sound-invitation');
+const missionInvitation = document.querySelector('#mission-invitation');
 let audioContext, analyser, bins;
 const sources = new WeakMap();
 let beats = [], drops = [], lastBeat = -1, lastDrop = -1;
@@ -368,8 +369,22 @@ window.addEventListener('resize', () => moveEmblem(dragX, dragY));
 // Sound is invited once per tab session. Declining never installs a later gesture unlock.
 function closeInvitation() {
   if (invitation.open) invitation.close();
-  sound.focus({ preventScroll: true });
+  if (!showMission()) sound.focus({ preventScroll: true });
 }
+function showMission() {
+  if (missionSeen) return false;
+  missionInvitation.showModal();
+  document.querySelector('#mission-explore').focus({ preventScroll: true });
+  return true;
+}
+function finishMission() {
+  missionSeen = true;
+  try { sessionStorage.setItem('droidxr-mission-seen', '1'); } catch {}
+  missionInvitation.close();
+  document.querySelector('#hero-title').focus({ preventScroll: true });
+}
+for (const id of ['mission-explore', 'mission-skip', 'mission-close']) document.getElementById(id).addEventListener('click', finishMission);
+missionInvitation.addEventListener('cancel', event => { event.preventDefault(); finishMission(); });
 function continueSilently() {
   restoreMusic = false;
   audio.pause(); saveSoundChoice('silent');
@@ -385,19 +400,23 @@ document.querySelector('#sound-approve').addEventListener('click', () => {
 document.querySelector('#sound-decline').addEventListener('click', continueSilently);
 document.querySelector('#sound-close').addEventListener('click', continueSilently);
 invitation.addEventListener('cancel', event => { event.preventDefault(); continueSilently(); });
-invitation.addEventListener('keydown', event => {
+for (const dialog of [invitation, missionInvitation]) dialog.addEventListener('keydown', event => {
   if (event.key !== 'Tab') return;
-  const buttons = invitation.querySelectorAll('button'), first = buttons[0], last = buttons[buttons.length - 1];
+  const buttons = dialog.querySelectorAll('button'), first = buttons[0], last = buttons[buttons.length - 1];
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 });
 // Native media pause is also an explicit choice unless video sound temporarily took over.
 audio.addEventListener('pause', () => { if (!restoreMusic) saveSoundChoice('silent'); });
-let soundChoice;
-try { soundChoice = sessionStorage.getItem('droidxr-sound-choice'); } catch {}
+let soundChoice, missionSeen = false;
+try {
+  soundChoice = sessionStorage.getItem('droidxr-sound-choice');
+  missionSeen = sessionStorage.getItem('droidxr-mission-seen') === '1';
+} catch {}
 if (soundChoice === 'enabled') {
   audio.play().then(() => { root.dataset.autoplay = 'allowed'; }, () => {
     root.dataset.autoplay = 'blocked'; musicBlocked();
   });
-} else if (soundChoice === 'silent') root.dataset.autoplay = 'declined';
+  showMission();
+} else if (soundChoice === 'silent') { root.dataset.autoplay = 'declined'; showMission(); }
 else { root.dataset.autoplay = 'awaiting-choice'; invitation.showModal(); }

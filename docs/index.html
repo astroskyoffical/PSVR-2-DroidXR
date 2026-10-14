@@ -4,19 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080808">
-  <meta name="description" content="DroidXR aims to give PSVR 2 a portable second life, with an Android phone as its computer. The real build story, working container route and native Android progress.">
-  <title>DroidXR - project notes</title>
-  <link rel="stylesheet" href="styles.css?v=journal-10">
-  <script type="module" src="app.mjs?v=journal-10"></script>
+  <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
+  <title>DroidXR - VR on your terms</title>
+  <link rel="stylesheet" href="styles.css?v=journal-11">
+  <script type="module" src="app.mjs?v=journal-11"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
-  <dialog id="sound-invitation" aria-labelledby="sound-title" aria-describedby="sound-description">
+  <dialog id="sound-invitation" class="arrival-dialog" aria-labelledby="sound-title" aria-describedby="sound-description">
     <button id="sound-close" class="invitation-close" type="button" aria-label="Close and continue silently">&#215;</button>
     <p class="note-label">A little atmosphere</p>
     <h2 id="sound-title">Read with sound?</h2>
     <p id="sound-description">The music brings the lights to life. Enable it at half volume, or keep reading silently. You can change your mind using the sound control.</p>
-    <div class="invitation-actions"><button id="sound-approve" type="button" autofocus>Enable sound</button><button id="sound-decline" type="button">Continue silently</button></div>
+    <div class="invitation-actions"><button id="sound-approve" type="button" autofocus>Enable sound at 50%</button><button id="sound-decline" type="button">Continue silently</button></div>
+  </dialog>
+  <dialog id="mission-invitation" class="arrival-dialog mission-invitation" aria-labelledby="mission-title" aria-describedby="mission-description mission-scope">
+    <button id="mission-close" class="invitation-close" type="button" aria-label="Close the mission introduction">&#215;</button>
+    <p class="note-label">A starting point for more open VR</p>
+    <h2 id="mission-title">Help change what standalone VR can be.</h2>
+    <p id="mission-description">DroidXR starts with a working PSVR 2 route powered by an Android phone. I want to turn that into VR people can run, understand and improve on hardware they choose.</p>
+    <p id="mission-scope">If you build drivers, OpenXR apps, or have another headset to explore, come help. Wider headset support is an experiment we can build together, with each new device still needing its own work and testing.</p>
+    <div class="invitation-actions"><button id="mission-explore" type="button" autofocus>Explore the project</button><button id="mission-skip" type="button">Skip introduction</button></div>
   </dialog>
   <button id="emblem-control" class="hacker-emblem" type="button" aria-label="Floating DroidXR emblem. Drag to move, click to nudge, arrow keys to move, Home to reset." title="Drag to move · Click to nudge · Arrow keys move · Home resets">
     <svg viewBox="0 0 220 230" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -32,21 +40,17 @@
   </button>
   <header class="page-header">
     <a class="author" href="https://github.com/astroskyoffical" target="_blank" rel="noreferrer">astroskyoffical</a>
-    <nav aria-label="Project navigation"><a href="#work">The story</a><a href="#status">Status</a><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">GitHub &#8599;</a></nav>
+    <nav aria-label="Project navigation"><a href="#breakthrough">Proof</a><a href="#how-it-works">Build</a><a href="#contribute">Join in</a></nav>
   </header>
   <main id="project">
     <div class="intro">
       <p class="note-label">An independent project by AstroPC</p>
-      <h1 id="hero-title">DroidXR</h1>
-      <p class="hero-purpose">A new life for PSVR 2.<br>Your phone becomes the computer.</p>
-      <p class="lead">I already had a headset I loved. I wanted to find out whether the phone in my pocket could turn it into something I could take with me. That question became DroidXR.</p>
-      <div class="target-paths" aria-label="Two planned ways to use DroidXR">
-        <p><span>On the go</span> Phone runs the experience <i aria-hidden="true">&#8594;</i> PSVR 2</p>
-        <p><span>PC streaming</span> PC <i aria-hidden="true">&#8594;</i> wireless link <i aria-hidden="true">&#8594;</i> phone <i aria-hidden="true">&#8594;</i> PSVR 2</p>
-        <small>The intended setup. The headset still connects to the phone through a cable and suitable adapter; a fully portable power setup is part of the goal.</small>
-      </div>
-      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working milestone: Skyrim VR, eye tracking and gaze-driven rendering through Linux on the phone.<br><span class="indent">Native Android: image and head-follow confirmed. Frame pacing still needs work.</span></p>
-      <a class="read-story" href="#work">How we got here &#8595;</a>
+      <h1 id="hero-title" tabindex="-1">DroidXR</h1>
+      <p class="hero-purpose">VR on your terms.<br>PSVR 2 is the starting point.</p>
+      <p class="lead">I want to choose what runs my headset, keep the session on hardware I control, and keep using the good hardware I already own. DroidXR is my attempt to make that practical, starting with PSVR 2 powered by an Android phone.</p>
+      <p class="mission-copy">The aim is more choice over the software, less dependence on one closed ecosystem, and local operation with clearer control over your data. There is working hardware behind the idea, and plenty left to build.</p>
+      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working proof: Skyrim VR, eye tracking and gaze-driven rendering through Linux on the phone.<br><span class="indent">Native Android: an image and head-follow are confirmed. Frame pacing still needs work.</span></p>
+      <div class="intro-actions"><a class="read-story" href="#breakthrough">See it running &#8595;</a><a class="read-story" href="#contribute">Help build what comes next &#8595;</a></div>
     </div>
 
     <section id="breakthrough" class="breakthrough">
@@ -62,21 +66,45 @@
     </section>
 
     <section id="work">
+      <p class="section-number">01 / The reason to build it</p>
+      <h2>I want owning the headset to mean more choice.</h2>
+      <p>I already had a PSVR 2 I liked: OLED screens, eye tracking, and a very obvious cable back to another machine. Steam Frame got me thinking about taking the computer with me. Then I looked at the powerful phone I already carried and wondered whether that could do the job.</p>
+      <p>That question became a larger one. Could the headset be the hardware I choose to keep, while I choose the computer and software that drive it? I want fewer parts of a VR session tied to one vendor's store, account or runtime, and more of the setup open to inspection and improvement.</p>
+      <p>PSVR 2 is where I started because I owned it and wanted to give it another life. Getting it working from a phone is the first proof. Building a useful, understandable route that other people can reproduce is the next part.</p>
+    </section>
+
+    <section id="how-it-works">
+      <p class="section-number">02 / How the pieces fit</p>
+      <h2>The phone does the computing. The headset still needs a driver.</h2>
+      <ol class="method-steps">
+        <li><strong>Prepare the display.</strong> The Android app checks the connection and coordinates the external screen. Device-specific display work makes the PSVR 2 image mode possible; a DRM lease then gives the VR software control of that output while Android keeps its own screen.</li>
+        <li><strong>Run the graphics and tracking.</strong> In the working Linux route, Droidspaces hosts the container, modified Mesa draws on the phone GPU, and Monado coordinates the headset views and movement. The current tracking route also uses a compatibility bridge to Sony's Windows driver.</li>
+        <li><strong>Give an application a way in.</strong> <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a> is the shared interface between a compatible app and the runtime: ask for movement, render the views, submit the frames. Each headset still needs its own hardware support underneath it.</li>
+      </ol>
+      <p>This is where "just use the phone" turns into driver work. The newer native Android route is being built to handle the headset directly through Android's USB, graphics and app lifecycle, without depending on the Linux-container driver bridge. It has reached an image and head-follow checkpoint; it still needs steadier presentation and repeatable testing.</p>
+      <div class="target-paths" aria-label="Two intended ways to use the phone-hosted runtime">
+        <p><span>Local experiences</span> Phone runs a compatible experience <i aria-hidden="true">&#8594;</i> PSVR 2</p>
+        <p><span>PC streaming / planned</span> PC <i aria-hidden="true">&#8594;</i> wireless link <i aria-hidden="true">&#8594;</i> phone <i aria-hidden="true">&#8594;</i> PSVR 2</p>
+        <small>The headset still connects to the phone through a cable and suitable adapter. Portable power, heat and battery life need practical testing. The PC streaming route also needs a working local headset runtime.</small>
+      </div>
+      <p>OpenXR support and app compatibility are separate jobs. An app can also depend on a vendor's services, graphics extensions or operating system behavior. Quest and Android XR APK compatibility needs its own testing; installing an APK alone does not establish working immersive VR.</p>
+      <details class="evidence-note" id="build-history"><summary>Read the build story: the display breakthrough, tracking, games and native Android</summary>
+    <div class="history-step" id="history-reason">
       <p class="section-number">01 / The reason for the project</p>
-      <h2>What if the PSVR 2 I already owned could go standalone?</h2>
+      <h3>What if the PSVR 2 I already owned could go standalone?</h3>
       <p>Steam Frame got me thinking about it. I liked the idea of that freedom, but its screen and price weren't what I wanted. I already had a really nice PSVR 2. Its biggest downside for me was simple: it was wired to another machine.</p>
       <p>And I wanted to keep what made it good. PSVR 2 has <a href="https://www.playstation.com/en-us/ps-vr2/ps-vr2-tech-specs/" target="_blank" rel="noreferrer">OLED screens and eye tracking</a>. OLED gives you those deep blacks; eye tracking lets software know where you're looking. I wasn't excited about buying another headset and giving up hardware I already liked.</p>
       <p>So I started researching how to get away from the PC tether. I considered different platforms, then looked at my own phone. My RedMagic 11 Pro already had a <a href="https://global.redmagic.gg/pages/redmagic-11-pro-specs" target="_blank" rel="noreferrer">Snapdragon 8 Elite Gen 5</a>. There was a lot of computing power sitting right there. Why not put the work into that, and figure out how to drive the headset?</p>
       <p>That's where this started. Let the phone become the computer and the operating system, keep PSVR 2 as the headset, and carry the setup with you. Eventually, I want it to run compatible experiences itself or receive a wireless VR stream from a PC. The headset-to-phone cable and portable power still need to be part of the physical setup. Freeing it from a cable running back to a PC is the point.</p>
-    </section>
+    </div>
 
-    <section>
+    <div class="history-step">
       <p class="section-number">02 / Before VR, there was a display problem</p>
-      <h2>First, make the phone send the right picture.</h2>
+      <h3>First, make the phone send the right picture.</h3>
       <p>Having a powerful phone didn't mean I could just plug the headset in and start a game. First, the phone had to send the right kind of picture: the right size, refresh rate and arrangement for two eyes. Getting an ordinary second screen working was only the start.</p>
       <p>We built an Android app to see what the connection was doing and control it. It reads what the connected display supports, checks the mode actually being used, and handles starting and stopping the experimental display setup. My prototype uses a rooted phone, which gives the app system access that normal Android apps don't have.</p>
       <div id="dsc-breakthrough" class="build-note">
-        <h3>The DSC breakthrough: fitting the picture through the link.</h3>
+        <h4>The DSC breakthrough: fitting the picture through the link.</h4>
         <p>I needed the headset's 4000 &times; 2040 display mode at 120 Hz to work over the phone's DisplayPort connection. Display Stream Compression, or DSC, packs the picture data for that link so the headset can unpack it at the other end. Getting this working was one of the breakthroughs in my phone-hosted setup.</p>
         <p>The retained working configuration shows how we kept it enabled. The Android app prepares and checks the connection. Alongside it, a separate, phone-specific system add-on called <code>psvr2_dsc.ko</code> is loaded by KernelSU, the software managing root access on this phone. It hooks into the Qualcomm display driver's DSC configuration for the 4000 &times; 2040 DisplayPort mode.</p>
         <p>The saved profile uses 10 compressed bits per pixel and 120-line slices: settings for how the picture is packed into blocks on the display link. The startup script also checks that the connected screen identifies itself as Sony, makes the headset mode available when it is missing, and asks the phone to detect the connection again. That gave the rest of the VR setup an output it could build on.</p>
@@ -90,49 +118,49 @@
         </details>
       </div>
       <p>Once we could control the output, the next problem appeared: Android and the VR software both wanted to use it.</p>
-    </section>
+    </div>
 
-    <section>
+    <div class="history-step">
       <p class="section-number">03 / Giving the display to Linux</p>
-      <h2>Android had to let go without losing its own screen.</h2>
+      <h3>Android had to let go without losing its own screen.</h3>
       <p>I started with Linux running in a container on the phone. Think of it as a Linux workspace using the same phone processor and graphics hardware while Android keeps running. That gave me access to graphics drivers and VR software that already existed, rather than having to write everything from scratch.</p>
       <p>But the two systems couldn't fight over the headset's display. Some early attempts froze or crashed the phone. Turning off Android's entire display system wasn't much of a solution either; I still needed to use the phone's own screen.</p>
       <p>We worked toward a proper handoff. The app asks Android to release the external screen, Linux gets permission to use that output, and stopping the session gives it back. We also had to clear old connections and processes so one failed attempt wouldn't break the next one.</p>
       <p>Now the phone could keep its own screen while Linux drove the external one. That opened the door to VR, but we still needed something that understood PSVR 2's movement and its two eye views.</p>
-    </section>
+    </div>
 
-    <section>
+    <div class="history-step">
       <p class="section-number">04 / Turning display output into VR</p>
-      <h2>The picture and the tracking had to meet.</h2>
+      <h3>The picture and the tracking had to meet.</h3>
       <p>A picture on the headset isn't automatically VR. Turn your head and the view has to follow, at the right time, with a different image for each eye. The piece coordinating all that is called a VR runtime. We used an open source one called <a href="https://monado.freedesktop.org/" target="_blank" rel="noreferrer">Monado</a>.</p>
       <p>The Linux graphics stack, including Mesa and its Turnip driver for the phone's graphics chip, handled drawing. Monado handled the headset side. <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a> gave compatible applications a common way to ask for head movement and submit eye images.</p>
       <p>The working route also needed a compatibility bridge to Sony's Windows driver. That driver was built for the x86-64 processors used in many PCs; the phone uses ARM64. Getting those pieces to communicate was another layer of the experiment. Running them on the phone didn't turn them into native Android software.</p>
       <p>So the chain was finally coming together: the app prepared the display, Linux could use it, the graphics driver could draw, and the runtime could connect the game to the headset. Then came the part I actually wanted to see.</p>
-    </section>
+    </div>
 
-    <section>
+    <div class="history-step">
       <p class="section-number">05 / A game in the headset</p>
-      <h2>Skyrim became visible. Then it had to feel right.</h2>
+      <h3>Skyrim became visible. Then it had to feel right.</h3>
       <p>Skyrim VR ran through the phone's container setup, and I confirmed that it was visible inside PSVR 2. Both Sense controllers were switched on. At that first checkpoint, controller tracking and audio still needed their own checks.</p>
       <p>Later, performance work exposed a problem a frame counter could hide. A game could report more frames while head turns still produced ghosting: old-looking images trailing the movement. The software doing the final headset update was waiting behind the game's graphics work.</p>
       <p>We changed how the phone prioritized those headset updates and passed frames along. In a later comparison, the delay dropped. I put the headset on again: the ghosting was gone, the controllers were fine, and motion felt much smoother. A bigger number on a counter wouldn't have told that story.</p>
       <p>Eye tracking was the next connection to make useful. Monado supplied the direction each eye was looking. A modified game graphics layer, DXVK, read that gaze and used it to choose where the game should spend its rendering detail. That's eye-tracked foveated rendering: keep the detail around your gaze, do less work farther away, and move that focus as your eyes move.</p>
       <p>The recording above is the result on my setup: Skyrim running from the phone with full eye tracking and gaze-driven rendering. It took the whole chain to get there. The Android app enables the display setup; the runtime supplies the gaze; the game-side graphics work uses it. That's what turned the idea into a working phone-hosted VR milestone.</p>
       <details class="evidence-note"><summary>The motion result, with its limits</summary><p>The 11 October project notes record a matched comparison in which compositor queue delay fell from about 7.7 ms to 0.48 ms. The game's completion-rate proxy fell from 58.5 to 39.3 frames per second, while the worn-headset report improved. These are results from that setup and comparison, not a general phone performance claim or a completed native Android result.</p></details>
-    </section>
+    </div>
 
-    <section>
+    <div class="history-step">
       <p class="section-number">06 / Why one working game was not the finish</p>
-      <h2>Alyx exposed another layer of compatibility.</h2>
+      <h3>Alyx exposed another layer of compatibility.</h3>
       <p>Once Skyrim was working, I wanted to see how far the setup could go. Half-Life: Alyx took a different route: an ARM64 Linux version of the game with its own connection into the VR runtime. The headset work still helped, but Skyrim's settings weren't a recipe I could simply copy.</p>
       <p>We worked through missing connections and graphics failures. Eventually I could recognize the menu, but the views were distorted and the hands were wrong. I called it unusable. It was progress toward finding the problem, but I couldn't call that playable VR.</p>
       <p>That led to a SteamVR comparison. The normal download supplied PC-format binaries. A supplied Steam Frame recovery image contained the ARM64 runtime we were missing, so a separate SteamOS container was investigated. It started, but phone reboots made stability the priority. The next plan was to bring the needed runtime files back to the existing Linux setup instead of depending on the whole SteamOS environment.</p>
       <p>I kept the working Linux setup as the baseline. The compatibility experiments were useful, but I also wanted a cleaner way to start a headset session from the phone. That led to the next route.</p>
-    </section>
+    </div>
 
-    <section>
+    <div class="history-step">
       <p class="section-number">07 / The native Android route</p>
-      <h2>Keep the phone. Remove the container dependency.</h2>
+      <h3>Keep the phone. Remove the container dependency.</h3>
       <p>The next thing I'm building is a headset runtime that runs directly in Android. That's what I mean by native: the phone's own software talks to PSVR 2, without needing the Linux container and its Windows-driver compatibility path.</p>
       <p>That means connecting the existing headset knowledge to Android's USB access, graphics output and application lifecycle. We can reuse open source work where it already solves a problem and study the remaining driver behavior where it does not. Copying a library from Linux is insufficient because Android expects a different set of system interfaces.</p>
       <p>The first tests could connect to the real headset, read its motion sensors and start a VR session. But the code wasn't accepting the complete movement reports it needed to work out the view. A session could start and still have no picture to send to the eyes.</p>
@@ -140,6 +168,41 @@
       <p>So I put it on for the next test. That earlier run went black and every complete movement report was rejected. We had to keep working on how the code read the headset's reports.</p>
       <p>At 03:40 UTC on 14 October, I confirmed the next native milestone: an image in the headset, with the view following my head. The updates were still arriving unevenly. Now I can see and move the view, the next job is to make that movement feel steady and repeat the result reliably.</p>
       <p>This is a separate step from both the earlier DSC breakthrough and the working Skyrim container setup. The display link gets images to the headset; native tracking and presentation have to keep those images lined up with my movement.</p>
+
+    </div>
+
+      </details>
+    </section>
+
+    <section id="reproduce">
+      <p class="section-number">03 / Reproduce the work</p>
+      <h2>Start with the known setup. Change one piece at a time.</h2>
+      <p>The <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/README.md" target="_blank" rel="noreferrer">setup guide</a> records the rooted RedMagic reference device, Ubuntu ARM64 container, component identities and remaining gaps. It is the place to start before treating a different phone or kernel as compatible.</p>
+      <p>The <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/tag/mesa-turnip-2026.10.14-r1" target="_blank" rel="noreferrer">modified Mesa driver download</a> is available now, with checksums, notices and a versioned installer. It passed installation and GPU discovery checks on the reference Linux setup. It is one component; those checks do not establish a complete headset installation or working presentation.</p>
+      <ol class="reproduce-steps">
+        <li>Match the device and kernel requirements, and read the limits of each published component.</li>
+        <li>Resolve your container, account and installation paths using the <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/paths-and-configuration.md" target="_blank" rel="noreferrer">configuration guide</a>. Another person's home directory is a poor installation plan.</li>
+        <li>Follow the component's versioned instructions and checksums. Verify display output, head movement, controller input and calibrated gaze separately, then check that stopping returns the display and settings cleanly.</li>
+      </ol>
+      <p>Component downloads and a complete headset setup are different milestones. The guide keeps their scope and test results explicit. Keep proprietary drivers and games in their authorized distribution channels; the project does not bundle them.</p>
+    </section>
+
+    <section id="contribute">
+      <p class="section-number">04 / Build beyond the first headset</p>
+      <h2>Have different hardware? Bring it to the experiment.</h2>
+      <p>I'd love developers with a Bigscreen Beyond, a Pimax or another headset to explore what a phone-hosted route could look like. <strong>Those are untested future ports here.</strong> They need the actual hardware, display and USB protocol work, optics and calibration, tracking, input and runtime integration. A familiar connector is only the beginning.</p>
+      <p>Graphics drivers, USB, OpenXR apps, frame timing, eye tracking, or simply instructions another person can follow: there are useful ways to help. Start with one concrete problem, explain the setup, and show what changed. Small, repeatable results give the next developer something solid to build on.</p>
+      <p><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/issues" target="_blank" rel="noreferrer">Bring a reproducible issue or a headset-port proposal &#8599;</a><br><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Explore the project and contribute a patch &#8599;</a></p>
+    </section>
+
+    <section id="status">
+      <p class="section-number">05 / The limits stay visible</p>
+      <h2>Working proof, an unfinished runtime, and a clear direction.</h2>
+      <p>The Linux phone-hosted route is the working PSVR 2 proof shown in the Skyrim recording. At 03:40 UTC on 14 October, I confirmed an image and head-follow in the separate native Android route. Its updates were still arriving unevenly. The immediate native work is frame pacing, stability and repeating that result reliably.</p>
+      <p>Controller position and buttons, eye-tracking calibration, floor and room setup, recovery when tracking is lost, and repeatable start and stop each need their own checks. The native checkpoint does not establish feature parity with the working Linux route. Wider phone, headset and app support remains development work.</p>
+      <h3>Local operation and privacy by design</h3>
+      <p>I want head movement, gaze and room data handled locally wherever the chosen software permits it, with clear control over network connections. The current phone-hosted route runs its graphics and headset runtime on the phone. A streamed game would also involve the PC you choose.</p>
+      <p>That is the architecture and direction I am working toward, rather than a completed privacy audit. Phone firmware, the current proprietary driver dependency, individual games and any network services still bring their own behavior and terms. Making those dependencies visible, and reducing them through open and native work, is part of the project.</p>
       <details class="evidence-note" id="native-evidence"><summary>Native test evidence and what it proves</summary>
         <div class="evidence-scroll"><table><thead><tr><th scope="col">Test</th><th scope="col">Full pose records</th><th scope="col">Reported result</th></tr></thead><tbody>
           <tr><th scope="row">Earlier native V2, unworn</th><td>557 / 666 accepted</td><td>Two-view projection screenshot. VALID set; TRACKED clear.</td></tr>
@@ -150,19 +213,13 @@
       </details>
     </section>
 
-    <section id="status">
-      <p class="section-number">08 / Where that leaves the project</p>
-      <h2>The picture follows my head. Now make it feel steady.</h2>
-      <p>The Linux route is the working proof: the phone can run VR for PSVR 2, including the Skyrim eye-tracking work shown above. Direct Android now has my confirmed image and head-follow checkpoint. The immediate work is frame pacing: getting each view to arrive at a steady, predictable time as I move, then repeating that result reliably.</p>
-      <p>After that come the features that turn a test into something people can live with: reliable controller position and buttons, eye-tracking calibration, floor and room setup, recovery when tracking is lost, and repeatable start and stop from the app.</p>
-      <p>The longer-term goal has two routes. The phone can run compatible experiences itself, or receive VR streamed wirelessly from a PC and send the images to PSVR 2. Streaming still needs that working local headset runtime. Android app compatibility, supported phones, portable power, heat and battery life each need real testing.</p>
-      <p>I want someone who already owns a PSVR 2 to have a reason to keep it. Take the phone with you, keep the screens and eye tracking you like, and choose whether the experience runs locally or streams from a PC. That's the freedom I was looking for at the start. Now I'm working through the remaining pieces to make it practical.</p>
-    </section>
-
-    <section class="project-links">
-      <p class="section-number">Follow the work</p>
-      <p><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Project repository &#8599;</a><br><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/README.md" target="_blank" rel="noreferrer">Project overview &#8599;</a><br><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/discussions" target="_blank" rel="noreferrer">Questions and compatibility &#8599;</a></p>
-      <p class="source-note">Written from my project notes, saved runtime guide, game tests and native Android research. The Skyrim recording and reports of how it feels are mine. Native test counts are from my supplied summary. Historical tests describe their own setup; this page doesn't read live headset data.</p>
+    <section class="project-links" id="credits">
+      <p class="section-number">06 / Credits and the work behind it</p>
+      <h2>A community project built on other people's work.</h2>
+      <p>DroidXR is an independent project by AstroPC. The route builds on <a href="https://github.com/ravindu644/Droidspaces-OSS" target="_blank" rel="noreferrer">Droidspaces</a>, <a href="https://monado.freedesktop.org/" target="_blank" rel="noreferrer">Monado</a>, <a href="https://www.mesa3d.org/" target="_blank" rel="noreferrer">Mesa and Turnip</a>, <a href="https://www.khronos.org/openxr/" target="_blank" rel="noreferrer">OpenXR</a>, <a href="https://github.com/BnuuySolutions/Ignition" target="_blank" rel="noreferrer">Ignition</a>, <a href="https://github.com/BnuuySolutions/PSVR2Toolkit" target="_blank" rel="noreferrer">PSVR2Toolkit</a> and their contributors. Their identities, credits and licenses stay with their work.</p>
+      <p>The <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/optional-test-apps.md" target="_blank" rel="noreferrer">optional test-app notes</a> keep separate experiments and their original credits distinct from the core headset method. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/linux-container/docs/licenses-and-provenance.md" target="_blank" rel="noreferrer">Component notices and provenance</a> describe the distribution limits.</p>
+      <p class="source-note">Written from my project notes, saved runtime guide, game tests and native Android research. The Skyrim recording and reports of how it feels are mine. Native test counts are from my supplied summary. Historical tests describe their own setup; this page does not read live headset data.</p>
+      <p><a href="https://github.com/astroskyoffical/PSVR-2-DroidXR" target="_blank" rel="noreferrer">Project repository &#8599;</a></p>
     </section>
     <footer><span>DroidXR / independent community research</span><a href="#project">Back to top &#8593;</a></footer>
   </main>

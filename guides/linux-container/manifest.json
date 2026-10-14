@@ -1,8 +1,8 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "as_of": "2026-10-14",
-  "release_status": "Documentation preview; a tested, versioned runnable release is in preparation.",
-  "basis": "Preserved baseline and owner-supplied read-only file/configuration inventory; no release-review live session.",
+  "release_status": "Mesa 2026.10.14-r1 component published; full headset stack remains a documentation preview.",
+  "basis": "Preserved baseline inventory plus subsequent owner-run inactive-prefix Mesa install/hash/no-overwrite and scoped Vulkan discovery checks; no headset acceptance by the component check.",
   "platform": {
     "phone": "NX809J / RedMagic",
     "android_version": 16,
@@ -125,25 +125,25 @@
       {
         "path_template": "${VR_FILES}/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
         "sha256": "13f03707c59a9577813b7531e86861272ef9654017141e6e927e146505d26f8e",
-        "bytes": null,
+        "bytes": 17912688,
         "active_process_mapping_verified": false
       },
       {
         "path_template": "${VR_FILES}/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
         "sha256": "248cd58786c7a4bc0fef6242bf97c6ef984621caeada7af6f39b618e2ee4f5dc",
-        "bytes": null,
+        "bytes": 17822968,
         "active_process_mapping_verified": false
       }
     ],
     "selected_icds": [
       {
-        "path_template": "${VR_FILES}/turnip-gmemfix/lib-kms-priority-20261010/libvulkan_freedreno.so",
+        "path_template": "${VR_FILES}/turnip-gmemfix/icd/freedreno_icd.kms-priority-20261010.aarch64.json",
         "sha256": "2dbb267eda382c0c7ffd63010f8a93827f1766a8610f4df81ee8b864d4a2aaff",
         "api_version_declared": "1.4.353",
         "library_arch_declared": "64"
       },
       {
-        "path_template": "${VR_FILES}/turnip-kgsl-timeout-c4365a5/lib/libvulkan_freedreno.so",
+        "path_template": "${VR_FILES}/turnip-kgsl-timeout-c4365a5/icd/freedreno_icd.kgsl-timeout.aarch64.json",
         "sha256": null,
         "api_version_declared": "1.4.353",
         "library_arch_declared": "64"
@@ -198,10 +198,41 @@
     ],
     "availability": {
       "payload_included": false,
-      "download_available_from_this_package": false,
-      "reason": "Artifact-specific license/notice, dependency and portable-path review is in progress. Source/build reproduction status is tracked separately."
+      "download_available_from_this_package": true,
+      "separate_component_release": true,
+      "release_url": "https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/tag/mesa-turnip-2026.10.14-r1",
+      "archive": {
+        "name": "DroidXR-Mesa-Turnip-2026.10.14-r1.zip",
+        "url": "https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/mesa-turnip-2026.10.14-r1/DroidXR-Mesa-Turnip-2026.10.14-r1.zip",
+        "bytes": 7100677,
+        "sha256": "8451fa8bac50a57bc3a635f36833ba4f6a997f0d75490359cf60ae4feb9cb046"
+      },
+      "qualification": {
+        "name": "mesa-target-check-2026.10.14-r1.json",
+        "url": "https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/mesa-turnip-2026.10.14-r1/mesa-target-check-2026.10.14-r1.json",
+        "bytes": 2450,
+        "sha256": "601d38e34a84d7c895116dff51d390871d17dbd26f0c1055668c946267f53ecb"
+      },
+      "checksums": {
+        "name": "SHA256SUMS.txt",
+        "url": "https://github.com/astroskyoffical/PSVR-2-DroidXR/releases/download/mesa-turnip-2026.10.14-r1/SHA256SUMS.txt",
+        "bytes": 207,
+        "sha256": "98bf022d6f033c0af8450fc62417109485e97e89f460b9cb861ad9590ebd98bb"
+      },
+      "notice_review": "Artifact-specific notice review completed; preserve NOTICE-MESA.txt and licenses/.",
+      "qualification_scope": "Mesa driver component only; inactive installation and Vulkan discovery tested, no headset presentation qualification",
+      "clean_independent_source_rebuild_verified": false,
+      "full_headset_installer": false
     },
-    "source_directory_template": "${VR_FILES}/turnip-gmemfix/mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4"
+    "source_directory_template": "${VR_FILES}/turnip-gmemfix/mesa-for-android-container-c4365a5a09a1de895377eaec6152a34a9a63b8b4",
+    "published_layout": {
+      "version": "2026.10.14-r1",
+      "prefix_default": "/opt/droidxr/releases/mesa-2026.10.14-r1",
+      "app_icd_relative": "mesa/app/icd/freedreno_icd.json",
+      "compositor_icd_relative": "mesa/compositor/icd/freedreno_icd.json",
+      "relative_library_path_in_each_icd": "../lib/libvulkan_freedreno.so",
+      "historical_launcher_paths_are_not_automatically_updated": true
+    }
   },
   "recovered_scripts": [
     {
@@ -313,8 +344,8 @@
   "known_restore_gap": "Historical launcher denies GameAssist overlay app-op and does not restore its prior value on off.",
   "remaining_evidence": [
     "Production DSC matching source, build configuration and notices.",
-    "Custom Mesa and Monado exact modifications/build-to-output provenance and notice closure.",
-    "Exact ELF architecture/dependency/build-ID and corresponding build/source evidence remains under review; no runtime payload included.",
+    "Independent clean Mesa source rebuild; Monado exact modifications/build-to-output provenance and notice closure.",
+    "Monado runtime dependency/build/source preparation; published Mesa checks cover installation and Vulkan discovery only.",
     "Installed LinkDoctor matching Java/source-build identity and license.",
     "Rootfs image origin/digest/recipe and package-source notices.",
     "Exact deployed bridge, Wine/Proton, WayVR/shim and OpenComposite identities.",
@@ -323,7 +354,7 @@
   "excluded_payloads": [
     "APKs",
     "kernel modules",
-    "runtime/graphics binaries",
+    "Monado runtime binaries; Mesa drivers are available only in the separate linked component release",
     "rootfs images",
     "Sony/Valve drivers or assets",
     "game files",
