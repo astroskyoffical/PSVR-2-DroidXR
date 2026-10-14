@@ -1,0 +1,20 @@
+/*
+Copyright (C) 2026 AstroPC (astroskyoffical)
+SPDX-License-Identifier: GPL-3.0-only
+Original project portions only; see https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/LICENSE-SCOPE.md
+License: https://www.gnu.org/licenses/gpl-3.0.html
+*/
+.foveation-flow{margin:27px 0 30px;padding:20px 14px 17px;border:1px solid #555;border-radius:10px;background:#0b0b0b;color:#ededed;isolation:isolate}
+.flow-heading{padding:0 4px 13px}.flow-heading .flow-kicker{display:block;font:11px/1.6 Consolas,monospace;letter-spacing:.09em;color:#aaa;margin-bottom:9px}.flow-heading h3{font-size:25px;font-weight:500;line-height:1.3;letter-spacing:-.02em;margin:0 0 8px}
+section .flow-heading p{font-size:16px;color:#bdbdbd;line-height:1.65;margin:0}.flow-svg{display:block;width:100%;height:auto;overflow:visible;font-family:"Segoe UI",Arial,sans-serif}.flow-mobile{display:none}.flow-lane{font:12px Consolas,monospace;letter-spacing:.035em;fill:#aaa}.flow-foot{font-size:13px;fill:#b8b8b8}
+.flow-wire{fill:none;stroke:#686868;stroke-width:1.35}.flow-gaze .flow-wire{stroke-dasharray:3 5}.flow-api .flow-wire{stroke-dasharray:9 5;stroke:#777}.flow-electric{fill:none;stroke:white;stroke-linecap:round;stroke-dasharray:18 200;stroke-dashoffset:18;opacity:0;pointer-events:none}.flow-bloom{stroke-width:6}.flow-core{stroke-width:2.2}.flow-node-fill{fill:#101010;stroke:#666;stroke-width:1}.flow-node-charge,.flow-node-halo{fill:none;stroke:#fff;stroke-width:1.6;opacity:0}.flow-node-halo{stroke-width:3}
+.flow-node text{text-anchor:middle;fill:#efefef}.flow-node-title{font-weight:550}.flow-node-detail{font-size:14px;fill:#bfbfbf!important}.flow-legend{display:flex;gap:15px;flex-wrap:wrap;border-top:1px solid #333;padding:15px 4px 0;font-size:13px;line-height:1.6;color:#c7c7c7}.flow-legend span{display:flex;gap:8px;align-items:center}.flow-legend i{display:block;width:22px;height:0;border-top:1.5px solid #ddd}.flow-legend .legend-gaze{border-top-style:dotted}.flow-legend .legend-api{border-top-style:dashed}
+.foveation-flow figcaption{font-size:14px;line-height:1.65;color:#bbb;padding:13px 4px 0}.foveation-flow figcaption span{display:block;color:#9d9d9d;margin-top:7px}.flow-text{margin:14px 4px 0;border-top:1px solid #333;padding-top:12px;font-size:14px}.flow-text summary{cursor:pointer;color:#ddd}.flow-text p{font-size:14px!important;line-height:1.7!important;color:#aaa!important;margin-top:12px!important}
+.motion-off .flow-electric,.motion-off .flow-node-charge,.motion-off .flow-node-halo{opacity:0!important}
+@media(prefers-reduced-motion:reduce){.flow-electric,.flow-node-charge,.flow-node-halo{opacity:0!important}}
+@media(max-width:600px){.foveation-flow{margin:25px 0;padding:16px 10px}.flow-heading h3{font-size:24px}.flow-heading .flow-kicker{font-size:10px;letter-spacing:.07em}.flow-desktop{display:none}.flow-mobile{display:block}.flow-lane{font-size:13px}.flow-foot{font-size:14px}.flow-node-detail{font-size:17px}.flow-legend{gap:8px 12px;font-size:12px;padding-top:13px}.flow-legend i{width:18px}.foveation-flow figcaption{font-size:14px}}
+
+/* Electrical traces: only the electrical traces and receiving borders use cool blue. */
+.flow-wire{stroke:#61798d}.flow-api .flow-wire{stroke:#61798d}.flow-electric{stroke:#b3deff}.flow-bloom{stroke:#66adf1}.flow-node-charge{stroke:#b3deff}.flow-node-halo{stroke:#6bb0f1}.flow-head{fill:#d0ebff;opacity:0;pointer-events:none}.flow-head-bloom{fill:#62acf1;opacity:0;pointer-events:none}.flow-legend i{border-color:#99c9ef}
+.motion-off .flow-head,.motion-off .flow-head-bloom{opacity:0!important}
+@media(prefers-reduced-motion:reduce){.flow-head,.flow-head-bloom{opacity:0!important}}

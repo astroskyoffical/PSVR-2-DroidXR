@@ -5,6 +5,7 @@ Original project portions only; see https://github.com/astroskyoffical/PSVR-2-Dr
 License: https://www.gnu.org/licenses/gpl-3.0.html
 */
 import { normalizeVisualData, eventAt, pulseAllowed } from './visual-data.mjs';
+import { configureFlow, updateFlow, resetFlow } from './foveation-flow.mjs';
 
 const audio = document.querySelector('#audio');
 const sound = document.querySelector('#sound-toggle');
@@ -211,6 +212,7 @@ function frame(now) {
   surfaceGlow += (glowTarget - surfaceGlow) * (1 - Math.exp(-elapsed / (glowTarget > surfaceGlow ? .08 : .32)));
   setSignal(lowEnd, drop, flash, surfaceGlow);
   paint(sceneTime, lowEnd, kick, drop);
+  updateFlow(time, playing);
   paintMission(now);
   frameId = requestAnimationFrame(frame);
 }
@@ -224,6 +226,7 @@ function setMotion(value) {
   motion.setAttribute('aria-checked', String(enabled));
   motion.textContent = enabled ? 'Motion on' : 'Motion off';
   if (!enabled) {
+    resetFlow();
     cancelAnimationFrame(frameId); frameId = 0;
     surfaceGlow = 0;
     setSignal(0, 0); paint(sceneTime); pauseVideo();
@@ -257,6 +260,8 @@ function paused() {
   sound.textContent = 'Sound off'; sound.setAttribute('aria-label', 'Play optional sound');
   status.textContent = audio.ended ? 'Playback ended.' : 'Sound paused. The journal remains available.';
 }
+audio.addEventListener('seeking', resetFlow);
+audio.addEventListener('ended', resetFlow);
 audio.addEventListener('pause', paused); audio.addEventListener('ended', paused);
 audio.addEventListener('waiting', () => { waiting = true; });
 audio.addEventListener('playing', () => { waiting = false; });
@@ -278,7 +283,7 @@ window.addEventListener('pointermove', event => {
   pointerY = (event.clientY / innerHeight - .5) * 16;
 }, { passive: true });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { cancelAnimationFrame(frameId); frameId = 0; pauseVideo(); }
+  if (document.hidden) { resetFlow(); cancelAnimationFrame(frameId); frameId = 0; pauseVideo(); }
   else { start(); autoPlayVideo(); }
 });
 fetch('cues.json').then(response => {
@@ -287,6 +292,7 @@ fetch('cues.json').then(response => {
 }).then(raw => {
   const cues = normalizeVisualData(raw);
   if (Math.abs(cues.duration_seconds - 1306.586848) > .05) return;
+  configureFlow(cues);
   beats = cues.events.filter(event => event.event_type === 'beat_candidate' && event.provenance === 'local_grid_onset_snap' && event.strength >= .55);
   drops = cues.events.filter(event => event.event_type === 'drop_candidate');
   resetCues();

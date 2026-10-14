@@ -17,10 +17,14 @@ AstroPC (astroskyoffical) offers **GNU General Public License version 3 only**, 
 | `research/dxvk-gaze/monado-sr.env.example` | Original configuration-template text only; upstream names and recorded identity metadata are excluded |
 | `.github/workflows/pages.yml` | Original site build and deployment workflow; referenced Actions retain their own licenses |
 | `docs/app.mjs` | Original site interactions, sound coordination and visual effects |
+| `docs/foveation-flow.mjs` | Original music-clock-driven SVG signal-flow animation |
+| `docs/foveation-timing.mjs` | Original deterministic cue pacing, travel and arrival envelopes |
+| `docs/foveation-timing.test.mjs` | Original full-song timing and continuity checks |
+| `docs/foveation-flow.css` | Original signal-flow styling and cool-blue electrical effects |
 | `docs/visual-data.mjs` | Original cue normalization and timing helpers |
 | `docs/visual-data.test.mjs` | Original helper tests |
 | `docs/styles.css` | Original site styling and animations |
-| `docs/index.html` | Original HTML markup, original inline SVG emblem and original page prose |
+| `docs/index.html` | Original HTML markup, original inline SVG emblem and foveation graph, and original page prose |
 
 The grant also covers the original project-authored portions of these documentation files:
 
