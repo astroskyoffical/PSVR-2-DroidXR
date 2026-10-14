@@ -12,8 +12,8 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
   <meta name="theme-color" content="#080808">
   <meta name="description" content="User-controlled VR research, starting with PSVR 2 powered by an Android phone. Working proof, native OpenXR development, local-operation goals and an invitation to build beyond one headset.">
   <title>DroidXR - VR on your terms</title>
-  <link rel="stylesheet" href="styles.css?v=journal-16">
-  <script type="module" src="app.mjs?v=journal-16"></script>
+  <link rel="stylesheet" href="styles.css?v=journal-17">
+  <script type="module" src="app.mjs?v=journal-17"></script>
 </head>
 <body>
   <canvas id="signal-canvas" aria-hidden="true"></canvas>
@@ -99,7 +99,7 @@ License: https://www.gnu.org/licenses/gpl-3.0.html
       <p class="section-number">Current work / Foveated rendering</p>
       <h2>Put the GPU work where it matters.</h2>
       <p>Once I had the headset working, I wanted the phone to spend less effort on detail I wasn't looking at. That's the idea behind foveated rendering: keep detail around the important part of the view and reduce shading work farther out. Eye tracking can tell the software where I'm looking, but the renderer still has to use that information.</p>
-      <p>The work split into different experiments. A Monado compositor path reads per-eye gaze and centers its fuller upscaling work there, with a cheaper upscale outside it. That changes how an already rendered image is processed. Separate Turnip and DXVK prototype files explore shading the periphery less often using a fixed center. The reviewed Turnip proposal is unbuilt; that DXVK prototype has only a desktop smoke test. I'm tracing the libraries from the working run separately.</p>
+      <p>The work split into different experiments. A Monado compositor path reads per-eye gaze and centers its fuller upscaling work there, with a cheaper upscale outside it. That changes how an already rendered image is processed. Separate Turnip and DXVK prototype files explore shading the periphery less often using a fixed center. The reviewed Turnip proposal is unbuilt. I also tested DXVK foveation on the phone in my setup. Matching that phone-tested build to its exact source revision and patches is still in progress; the retained desktop prototype isn't a complete account of it.</p>
       <p>What I want from this is less GPU work in the periphery while keeping the part I'm looking at clear. I reported eye tracking and foveation working in the headset. The implementation mapping is still underway, and the completed audit doesn't yet put a reliable number on GPU-work savings in that run.</p>
       <p>This is work around the Linux-container route. The newer native Android route is unfinished, and possible reuse on Steam Frame still needs its own implementation and tests. <a href="https://github.com/astroskyoffical/PSVR-2-DroidXR/blob/main/guides/foveated-rendering.md" target="_blank" rel="noreferrer">How the experiments fit together, what was checked, and the upstream work behind them &#8599;</a></p>
     </section>
