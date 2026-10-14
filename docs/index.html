@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#080808">
   <meta name="description" content="DroidXR aims to give PSVR 2 a portable second life, with an Android phone as its computer. The real build story, working container route and native Android progress.">
   <title>DroidXR - project notes</title>
-  <link rel="stylesheet" href="styles.css?v=journal-7">
+  <link rel="stylesheet" href="styles.css?v=journal-8">
   <script type="module" src="app.mjs?v=journal-7"></script>
 </head>
 <body>
@@ -45,7 +45,7 @@
         <p><span>PC streaming</span> PC <i aria-hidden="true">&#8594;</i> wireless link <i aria-hidden="true">&#8594;</i> phone <i aria-hidden="true">&#8594;</i> PSVR 2</p>
         <small>The intended setup. The headset still connects to the phone through a cable and suitable adapter; a fully portable power setup is part of the goal.</small>
       </div>
-      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working milestone: Skyrim VR, eye tracking and gaze-driven rendering through Linux on the phone.<br><span class="indent">Current work: bringing the headset connection directly into Android.</span></p>
+      <p class="current-note"><span class="status-dot" aria-hidden="true"></span> Working milestone: Skyrim VR, eye tracking and gaze-driven rendering through Linux on the phone.<br><span class="indent">Native Android: image and head-follow confirmed. Frame pacing still needs work.</span></p>
       <a class="read-story" href="#work">How we got here &#8595;</a>
     </div>
 
@@ -75,7 +75,20 @@
       <h2>First, make the phone send the right picture.</h2>
       <p>Having a powerful phone didn't mean I could just plug the headset in and start a game. First, the phone had to send the right kind of picture: the right size, refresh rate and arrangement for two eyes. Getting an ordinary second screen working was only the start.</p>
       <p>We built an Android app to see what the connection was doing and control it. It reads what the connected display supports, checks the mode actually being used, and handles starting and stopping the experimental display setup. My prototype uses a rooted phone, which gives the app system access that normal Android apps don't have.</p>
-      <p>We also worked on Display Stream Compression, usually shortened to DSC. It packs the image data more efficiently so it can fit through the video connection. The saved setup combines phone-specific system changes with display settings. Those changes and the app gave us a way to prepare and check the headset's output, instead of guessing what Android had chosen.</p>
+      <div id="dsc-breakthrough" class="build-note">
+        <h3>The DSC breakthrough: fitting the picture through the link.</h3>
+        <p>I needed the headset's 4000 &times; 2040 display mode at 120 Hz to work over the phone's DisplayPort connection. Display Stream Compression, or DSC, packs the picture data for that link so the headset can unpack it at the other end. Getting this working was one of the breakthroughs in my phone-hosted setup.</p>
+        <p>The retained working configuration shows how we kept it enabled. The Android app prepares and checks the connection. Alongside it, a separate, phone-specific system add-on called <code>psvr2_dsc.ko</code> is loaded by KernelSU, the software managing root access on this phone. It hooks into the Qualcomm display driver's DSC configuration for the 4000 &times; 2040 DisplayPort mode.</p>
+        <p>The saved profile uses 10 compressed bits per pixel and 120-line slices: settings for how the picture is packed into blocks on the display link. The startup script also checks that the connected screen identifies itself as Sony, makes the headset mode available when it is missing, and asks the phone to detect the connection again. That gave the rest of the VR setup an output it could build on.</p>
+        <details class="evidence-note" id="dsc-evidence"><summary>The retained DSC setup, with the exact startup line</summary>
+          <p>The saved <code>service.sh</code> contains this loading line:</p>
+          <pre class="startup-line"><code>insmod ${0%/*}/psvr2_dsc.ko enable=1</code></pre>
+          <p>It runs inside that module's startup script. <code>${0%/*}</code> refers to the directory containing the script, so it loads the adjacent module file. This documents the saved phone setup; it is not a universal command to run on an Android phone.</p>
+          <p>The script checks Sony's <code>4dd9</code> display-identification vendor bytes. If the mode is absent, it exposes <code>4000 2040 120 0</code> through the vendor's <code>edid_modes</code> interface and cycles HPD, the connection-detection signal, to prompt a fresh display check.</p>
+          <p>The recovered 12 October baseline retains <code>service.sh</code>, <code>module.prop</code> and <code>psvr2_dsc.ko</code>. Loaded snapshots identify an NX809J phone, ARM64, with kernel <code>6.12.23-android16-OP-WILD</code>. The module targets Qualcomm's <code>msm_drm</code> display path. Its binary references <code>register_kretprobe</code> and <code>sde_dsc_populate_dsc_config</code>, consistent with hooking the driver's compression setup.</p>
+          <p>The original C source and the first successful run's log have not been recovered. This account follows my build history and the retained production configuration. It does not establish a published source build or support for every phone.</p>
+        </details>
+      </div>
       <p>Once we could control the output, the next problem appeared: Android and the VR software both wanted to use it.</p>
     </section>
 
@@ -124,20 +137,23 @@
       <p>That means connecting the existing headset knowledge to Android's USB access, graphics output and application lifecycle. We can reuse open source work where it already solves a problem and study the remaining driver behavior where it does not. Copying a library from Linux is insufficient because Android expects a different set of system interfaces.</p>
       <p>The first tests could connect to the real headset, read its motion sensors and start a VR session. But the code wasn't accepting the complete movement reports it needed to work out the view. A session could start and still have no picture to send to the eyes.</p>
       <p>A later test with the headset sitting off my head moved forward. Most of those movement reports were accepted, and the software produced a test picture for both eyes. That was a useful step, but a screenshot by itself couldn't tell me whether tracking would work while I was wearing it.</p>
-      <p>So I put it on for the next test. The output went black and every complete movement report was rejected. The worn-state decoder problem is still unresolved: the code reading the headset's reports needs fixing. That's the current Android problem, separate from the working Linux setup.</p>
+      <p>So I put it on for the next test. That earlier run went black and every complete movement report was rejected. We had to keep working on how the code read the headset's reports.</p>
+      <p>At 03:40 UTC on 14 October, I confirmed the next native milestone: an image in the headset, with the view following my head. The updates were still arriving unevenly. Now I can see and move the view, the next job is to make that movement feel steady and repeat the result reliably.</p>
+      <p>This is a separate step from both the earlier DSC breakthrough and the working Skyrim container setup. The display link gets images to the headset; native tracking and presentation have to keep those images lined up with my movement.</p>
       <details class="evidence-note" id="native-evidence"><summary>Native test evidence and what it proves</summary>
         <div class="evidence-scroll"><table><thead><tr><th scope="col">Test</th><th scope="col">Full pose records</th><th scope="col">Reported result</th></tr></thead><tbody>
-          <tr><th scope="row">Native V2, unworn</th><td>557 / 666 accepted</td><td>Two-view projection screenshot. VALID set; TRACKED clear.</td></tr>
-          <tr><th scope="row">Native, worn, 45 seconds</th><td>0 / 1,755 accepted</td><td>Black output; all 1,755 full pose packets rejected.</td></tr>
+          <tr><th scope="row">Earlier native V2, unworn</th><td>557 / 666 accepted</td><td>Two-view projection screenshot. VALID set; TRACKED clear.</td></tr>
+          <tr><th scope="row">Earlier native, worn, 45 seconds</th><td>0 / 1,755 accepted</td><td>Black output; all 1,755 full pose packets rejected.</td></tr>
+          <tr><th scope="row">14 October, 03:40 UTC</th><td>No new packet counts supplied here</td><td>I confirmed an image and head-follow. Frame pacing was uneven.</td></tr>
         </tbody></table></div>
-        <p>These latest counts and flags come from my supplied test summary. The screenshot result does not verify a picture through the lenses or correct tracked movement. <a href="https://registry.khronos.org/OpenXR/specs/1.1/man/html/XrSpaceLocationFlagBits.html" target="_blank" rel="noreferrer">OpenXR distinguishes valid data from actively tracked data.</a> Earlier native checks come from the 13 October research notes. This website does not read live headset telemetry.</p>
+        <p>The earlier counts and flags come from my supplied test summary; that unworn screenshot alone did not establish a tracked view through the lenses. <a href="https://registry.khronos.org/OpenXR/specs/1.1/man/html/XrSpaceLocationFlagBits.html" target="_blank" rel="noreferrer">OpenXR distinguishes valid data from actively tracked data.</a> The newer image and head-follow result is my worn-headset confirmation at the time shown above. It does not supply new packet counts or establish native feature parity with the Linux route. This website does not read live headset telemetry.</p>
       </details>
     </section>
 
     <section id="status">
       <p class="section-number">08 / Where that leaves the project</p>
-      <h2>The destination is portable VR. The next step is a worn native scene.</h2>
-      <p>The Linux route is the working proof: the phone can run VR for PSVR 2, including the Skyrim eye-tracking work shown above. The direct Android route is where I'm working now. I need to understand why its movement data is accepted with the headset off and rejected when I put it on, fix that, then see a correctly moving scene through the lenses.</p>
+      <h2>The picture follows my head. Now make it feel steady.</h2>
+      <p>The Linux route is the working proof: the phone can run VR for PSVR 2, including the Skyrim eye-tracking work shown above. Direct Android now has my confirmed image and head-follow checkpoint. The immediate work is frame pacing: getting each view to arrive at a steady, predictable time as I move, then repeating that result reliably.</p>
       <p>After that come the features that turn a test into something people can live with: reliable controller position and buttons, eye-tracking calibration, floor and room setup, recovery when tracking is lost, and repeatable start and stop from the app.</p>
       <p>The longer-term goal has two routes. The phone can run compatible experiences itself, or receive VR streamed wirelessly from a PC and send the images to PSVR 2. Streaming still needs that working local headset runtime. Android app compatibility, supported phones, portable power, heat and battery life each need real testing.</p>
       <p>I want someone who already owns a PSVR 2 to have a reason to keep it. Take the phone with you, keep the screens and eye tracking you like, and choose whether the experience runs locally or streams from a PC. That's the freedom I was looking for at the start. Now I'm working through the remaining pieces to make it practical.</p>
