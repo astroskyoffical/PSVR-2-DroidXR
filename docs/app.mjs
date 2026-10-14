@@ -1,4 +1,4 @@
-import { normalizeVisualData, eventAt } from './visual-data.mjs';
+import { normalizeVisualData, eventAt, pulseAllowed } from './visual-data.mjs';
 
 const audio = document.querySelector('#audio');
 const sound = document.querySelector('#sound-toggle');
@@ -13,6 +13,7 @@ let audioContext, analyser, bins, source;
 let beats = [], drops = [], lastBeat = -1, lastDrop = -1;
 let frameId = 0, previousFrame = 0, lowEnd = 0, dropSize = 0, dropTime = -100;
 let enabled = !reduced.matches, seeking = false, waiting = false;
+let lastFlash = -100, flashAt = -100, flashSize = 0;
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 let sceneTime = 0, pointerX = 0, pointerY = 0, driftX = 0, driftY = 0, driftScroll = scrollY;
 const particles = Array.from({ length: 18 }, (_, i) => ({
@@ -56,9 +57,10 @@ function readBass() {
   return energy / (count - 1);
 }
 
-function setSignal(bass, drop) {
+function setSignal(bass, drop, flash = 0) {
   root.style.setProperty('--bass-level', bass.toFixed(3));
   root.style.setProperty('--pulse-glow', drop.toFixed(3));
+  root.style.setProperty('--logo-flash', flash.toFixed(3));
   root.style.setProperty('--edge-alpha', (.10 + bass * .10 + drop * .08).toFixed(3));
   root.style.setProperty('--edge-glow', `${(3 + bass * 12 + drop * 18).toFixed(1)}px`);
   root.style.setProperty('--trace-offset', `${(-audio.currentTime * 1.2).toFixed(3)}px`);
@@ -77,15 +79,18 @@ function paint(time, bass = 0, kick = 0, drop = 0) {
   canvas.dataset.particleCount = String(count);
   canvas.dataset.pixelRatio = String(scale);
   canvas.dataset.sceneTime = time.toFixed(3);
+  const bokehDrive = bass * .28 + kick * .08 + drop * .22;
+  canvas.dataset.bokehDrive = bokehDrive.toFixed(3);
   for (let i = 0; i < count; i++) {
     const particle = particles[i];
-    const radius = particle.radius * (width < 600 ? .72 : 1) * (1 + bass * .045 + drop * .10);
-    const x = particle.x * width + Math.sin(time * .055 + particle.phase) * 32 * particle.depth + driftX * particle.depth;
+    const radius = particle.radius * (width < 600 ? .72 : 1) * (1 + bokehDrive);
+    const x = particle.x * width + Math.sin(time * .055 + particle.phase) * 32 * particle.depth
+      + driftX * particle.depth + (particle.x - .5) * bokehDrive * 30;
     const span = height + 220;
     const rawY = particle.y * height + Math.cos(time * .045 + particle.phase) * 37 * particle.depth
       + driftY * particle.depth - driftScroll * .025 * particle.depth;
     const y = ((rawY + 110) % span + span) % span - 110;
-    context.globalAlpha = .23 + particle.depth * .12 + bass * .025 + drop * .055;
+    context.globalAlpha = .21 + particle.depth * .12 + bass * .18 + drop * .12;
     context.drawImage(orb, x - radius, y - radius, radius * 2, radius * 2);
   }
   context.globalAlpha = 1;
@@ -116,7 +121,14 @@ function resetCues() {
   lastBeat = eventAt(beats, time)?.time_seconds ?? -1;
   lastDrop = eventAt(drops, time)?.time_seconds ?? -1;
   dropTime = -100;
+  lastFlash = sceneTime; flashAt = -100;
   lowEnd = 0;
+}
+
+function flashLogo(strength) {
+  // A small emblem flashes at most once per .72 seconds, including strong drops.
+  if (!pulseAllowed(lastFlash, sceneTime)) return;
+  lastFlash = sceneTime; flashAt = sceneTime; flashSize = clamp(strength, .55, 1);
 }
 
 function frame(now) {
@@ -141,18 +153,20 @@ function frame(now) {
     const beat = eventAt(beats, time);
     if (beat && time - beat.time_seconds < .34) {
       kick = beat.strength * Math.exp(-(time - beat.time_seconds) / .14);
+      if (beat.time_seconds > lastBeat) flashLogo(beat.strength);
       lastBeat = beat.time_seconds;
     }
     const drop = eventAt(drops, time);
     if (drop && drop.time_seconds > lastDrop) {
       lastDrop = drop.time_seconds;
-      if (time - drop.time_seconds < .25) { dropTime = time; dropSize = drop.strength; }
+      if (time - drop.time_seconds < .25) { dropTime = time; dropSize = drop.strength; flashLogo(drop.strength); }
     }
   }
   const age = time - dropTime;
   const drop = playing && age >= 0 && age < 1.7
     ? dropSize * (age < .22 ? Math.sin(age / .22 * Math.PI / 2) : Math.exp(-(age - .22) / .6)) : 0;
-  setSignal(lowEnd, drop);
+  const flash = playing ? flashSize * Math.exp(-Math.max(0, sceneTime - flashAt) / .18) : 0;
+  setSignal(lowEnd, drop, flash);
   paint(sceneTime, lowEnd, kick, drop);
   frameId = requestAnimationFrame(frame);
 }
