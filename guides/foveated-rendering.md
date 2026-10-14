@@ -15,7 +15,7 @@ This note separates source-inspected experiments from the reported working phone
 |---|---|---|
 | Experimental Turnip `TU_FOVEATE` | Proposes fixed radial fragment-density-map foveation through the GMEM path for selected dynamic color-and-depth passes. | This proposal is unbuilt and has no Adreno 840 phone test. It does not follow gaze. The audit does not bind it to released R1. |
 | Experimental DXVK | The source-reviewed prototype builds `VK_KHR_fragment_shading_rate` attachment maps with radial rate rings on matching eye render targets, with a fixed `DXVK_FOVEATION_CENTER`. This does not identify the exact phone-tested revision. | Tested on the phone in AstroPC's setup, as confirmed by AstroPC. A retained PC readback test is also documented; matching the phone-tested binary to its exact source revision and patch set is in progress. |
-| Monado compositor experiment | Receives per-eye gaze coordinates, puts fuller SGSR2 processing around them, uses cheaper spatial upscaling outside that area, blends the transition, then applies AMD FSR1 RCAS sharpening. | Source and saved configuration/logs support a configured gaze-centered upscaling path. Those artifacts alone do not measure visual quality or GPU-work benefit. |
+| Monado compositor / SGSR2 | The inspected source receives per-eye gaze coordinates, puts fuller SGSR2 processing around them, uses cheaper spatial upscaling outside that area, blends the transition, then applies AMD FSR1 RCAS sharpening. | AstroPC tested SGSR2 in the phone setup and found that it improved image quality. Source and saved configuration/logs also document the gaze-centered path. The observed quality improvement is separate from measuring GPU-work reduction or binding the exact tested build and live-gaze behavior to source. |
 
 The [released Mesa R1 documentation](linux-container/docs/mesa.md) describes the graphics/display route and installation checks. It does not document a foveation implementation or bind these proposals to its packaged drivers. That documentation gap does not settle every capability of the working stack.
 
@@ -29,11 +29,11 @@ Streaming encodes and transports an image. A foveated stream, a sharper picture,
 
 ## The live-gaze link still needs matching source
 
-The reviewed Monado bridge generates `HmdDevice::set_gaze` code that writes per-eye UV coordinates. The compositor reads that channel to position its upscaling zones. Saved configuration enables this route, and a saved Monado log records gaze-tracking initialization and the configured SGSR2 pass.
+The reviewed Monado bridge generates `HmdDevice::set_gaze` code that writes per-eye UV coordinates. The compositor reads that channel to position its upscaling zones. Saved configuration enables this route, and a saved Monado log records gaze-tracking initialization and the configured SGSR2 pass. I also tested SGSR2 on the phone and found that it worked well and improved the image. That is my observed image-quality result; the exact tested source version, gaze-path binding and measured GPU-work reduction remain separate questions.
 
 The DXVK libraries captured from a saved Skyrim session have different hashes from the reviewed fixed-center prototype. They contain a `DXVK_FOVEATION_GAZE` string. Matching implementation source and a per-pass/live-gaze trace are being investigated; the string is a clue, rather than a complete explanation of the loaded code. The reviewed prototype's limitations must not be assigned to those different working libraries.
 
-I reported a good worn-headset experience with eye tracking and foveation. That report remains part of the project evidence. Source/binary matching and controlled GPU-work measurements are the next parts needed to explain the implementation and quantify its benefit.
+I reported a good worn-headset experience with eye tracking and foveation, and improved image quality with SGSR2 on the phone. Those test results remain part of the project evidence. Source/binary matching and controlled GPU-work measurements are the next parts needed to explain the exact implementation and quantify its workload benefit.
 
 ## What it could bring, and how to check it
 
